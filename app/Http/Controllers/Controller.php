@@ -2,13 +2,23 @@
 
 namespace App\Http\Controllers;
 
-abstract class Controller
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Foundation\Bus\DispatchesJobs;
+use Illuminate\Foundation\Validation\ValidatesRequests;
+use Illuminate\Routing\Controller as BaseController;
+
+class Controller extends BaseController
 {
+    use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
+
     public function __construct()
     {
-        $this->middleware('auth:api');
+        // Add any global middleware here if needed.
     }
 
+    /**
+     * Return a JSON response for success.
+     */
     protected function jsonResponse($data, $message = '', $status = 200)
     {
         return response()->json([
@@ -17,11 +27,17 @@ abstract class Controller
         ], $status);
     }
 
+    /**
+     * Log an event.
+     */
     protected function logEvent($message, $context = [])
     {
         \Log::info($message, $context);
     }
 
+    /**
+     * Handle an exception and return a JSON response.
+     */
     protected function handleException(\Throwable $e)
     {
         return response()->json([
@@ -30,6 +46,9 @@ abstract class Controller
         ], 500);
     }
 
+    /**
+     * Return a success API response.
+     */
     protected function apiSuccess($data, $message = 'Operation successful', $status = 200)
     {
         return response()->json([
@@ -39,6 +58,9 @@ abstract class Controller
         ], $status);
     }
 
+    /**
+     * Return an error API response.
+     */
     protected function apiError($message = 'Operation failed', $status = 400)
     {
         return response()->json([

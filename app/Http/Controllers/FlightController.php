@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\Flight;
@@ -10,9 +10,8 @@ class FlightController extends Controller
 {
     public function __construct()
     {
-        if (!app()->runningUnitTests()) {
-            $this->middleware('auth:api');
-        }
+       // \Log::info('FlightController middleware setup initiated.');
+        //$this->middleware('auth:api');
     }
 
     public function index(Request $request)

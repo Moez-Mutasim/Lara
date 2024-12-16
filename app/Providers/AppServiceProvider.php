@@ -8,7 +8,14 @@ use Illuminate\Support\Facades\View;
 
 class AppServiceProvider extends ServiceProvider
 {
-    
+    protected function mapApiRoutes()
+{
+    Route::prefix('api')
+         ->middleware('api')
+         ->group(base_path('routes/api.php'));
+}
+
+
     public function register()
     {
         $this->app->singleton('SomeService', function ($app) {

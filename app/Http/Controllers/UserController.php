@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
@@ -10,7 +10,7 @@ class UserController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth:api')->except(['store']);
+      //  $this->middleware('auth:api')->except(['store']);
     }
 
     public function index(Request $request)
@@ -37,19 +37,19 @@ class UserController extends Controller
             : response()->json(['message' => 'User not found'], 404);
     }
 
-    public function store(Request $request)
+    public function store(StoreUserRequest $request)
     {
         try {
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
                 'email' => 'required|email|unique:users',
-                'password' => 'required|min:6',
+                'password' => 'required|string|min:6',
             ]);
 
             $user = User::create([
                 'name' => $validated['name'],
                 'email' => $validated['email'],
-                'password' => bcrypt($validated['password']),
+                'password' => $validated['password'],
             ]);
 
             return response()->json($user, 201);
@@ -58,7 +58,7 @@ class UserController extends Controller
         }
     }
 
-    public function update(Request $request, $id)
+    public function update(UpdateUserRequest $request, $id)
     {
         $user = User::find($id);
 
@@ -66,11 +66,10 @@ class UserController extends Controller
             return response()->json(['message' => 'User not found'], 404);
         }
 
-        // Validate input
         $validated = $request->validate([
             'name' => 'nullable|string|max:255',
             'email' => 'nullable|email|unique:users,email,' . $id,
-            'password' => 'nullable|min:6',
+            'password' => 'required|string|min:6',
         ]);
 
         $user->update($request->except('password'));

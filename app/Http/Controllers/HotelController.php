@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\Hotel;
@@ -9,7 +9,9 @@ use Illuminate\Http\Request;
 class HotelController extends Controller
 {
     public function __construct()
-    { $this->middleware('auth:api');}
+    { 
+        //$this->middleware('auth:api');
+    }
 
     public function index(Request $request)
     {

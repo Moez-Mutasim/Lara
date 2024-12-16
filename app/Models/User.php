@@ -6,10 +6,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable, SoftDeletes;
+    use HasApiTokens, HasFactory, Notifiable, SoftDeletes;
 
     protected $primaryKey = 'user_id';
     public $incrementing = true;
@@ -42,10 +43,17 @@ class User extends Authenticatable
 
     public function setPasswordAttribute($value)
     {
+        if (!$value) {
+            throw new \InvalidArgumentException('Password cannot be null');
+        }
+    
         if (\Illuminate\Support\Facades\Hash::needsRehash($value)) {
             $this->attributes['password'] = bcrypt($value);
+        } else {
+            $this->attributes['password'] = $value;
         }
-    }
+        }
+    
 
     public function getProfilePictureUrlAttribute()
     {
