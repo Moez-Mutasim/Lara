@@ -19,6 +19,7 @@ class FlightsTable extends Migration
             $table->integer('seats_available')->default(0);
             $table->enum('class', ['Economy', 'Business', 'First'])->default('Economy');
             $table->decimal('price', 10, 2);
+            $table->string('image')->nullable();
             $table->timestamps();
 
             // Foreign key constraints

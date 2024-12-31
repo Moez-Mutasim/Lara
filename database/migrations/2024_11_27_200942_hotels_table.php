@@ -15,6 +15,7 @@ class HotelsTable extends Migration
             $table->foreign('city_id')->references('location_id')->on('locations')->onDelete('cascade');
             $table->decimal('rating', 3, 2)->nullable()->default(null);
             $table->decimal('price_per_night', 15, 2);
+            $table->string('image')->nullable();
             $table->json('amenities')->nullable();
             $table->boolean('availability')->default(true);
             $table->softDeletes();
