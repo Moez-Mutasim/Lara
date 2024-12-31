@@ -9,7 +9,7 @@ class FlightsTableSeeder extends Seeder
 {
     public function run()
     {
-        $count = (int) config('seeder.flights_count', 20);
+        $count = (int) config('seeder.flights_count', 50);
 
         $this->command->info("Seeding {$count} flights...");
 

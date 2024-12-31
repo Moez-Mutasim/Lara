@@ -13,7 +13,7 @@ class BookingsTableSeeder extends Seeder
 {
     public function run()
     {
-        $count = (int) config('seeder.bookings_count', 20);
+        $count = (int) config('seeder.bookings_count', 50);
 
         if (User::count() === 0) {
             $this->command->info("Creating users...");

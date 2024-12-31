@@ -14,8 +14,8 @@ class Kernel extends HttpKernel
      * @var array<int, class-string|string>
      */
     protected $middleware = [
-        // Handle CORS requests
-        \Fruitcake\Cors\HandleCors::class,
+        // Use Laravel's built-in CORS middleware
+        \Illuminate\Http\Middleware\HandleCors::class,
 
         // Handles maintenance mode
         \App\Http\Middleware\CheckForMaintenanceMode::class,

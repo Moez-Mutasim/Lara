@@ -9,7 +9,7 @@ class UsersTableSeeder extends Seeder
 {
     public function run()
     {
-        $count = (int) config('seeder.users_count', 20);
+        $count = (int) config('seeder.users_count', 50);
 
         if ($count <= 0) {
             $this->command->error("Invalid user count: {$count}. Must be greater than 0.");

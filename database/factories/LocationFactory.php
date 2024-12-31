@@ -19,7 +19,7 @@ class LocationFactory extends Factory
             'latitude' => $this->faker->latitude(-90, 90),
             'longitude' => $this->faker->longitude(-180, 180),
             'is_active' => $this->faker->boolean(80),
-            'type' => $this->faker->randomElement(['city', 'airport', 'landmark']),
+            'type' => $this->faker->randomElement(['city', 'airport', 'train_station']),
         ];
     }
 

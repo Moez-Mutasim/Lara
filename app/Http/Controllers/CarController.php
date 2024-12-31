@@ -5,12 +5,14 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\Car;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class CarController extends Controller
 {
     public function __construct()
     {
-        //$this->middleware('auth:api');
+        // Uncomment if authentication is required
+        // $this->middleware('auth:sanctum');
     }
 
     public function index(Request $request)
@@ -30,6 +32,31 @@ class CarController extends Controller
         return response()->json($cars, 200);
     }
 
+
+
+    public function search(Request $request)
+    {
+        $query = Car::query();
+
+        // Filter by brand
+        if ($request->has('brand')) {
+            $query->where('brand', 'like', '%' . $request->input('brand') . '%');
+        }
+
+        // Filter by price range
+        if ($request->has(['min_price', 'max_price'])) {
+            $query->whereBetween('rental_price', [
+                $request->input('min_price'),
+                $request->input('max_price'),
+            ]);
+        }
+
+        $cars = $query->paginate(10);
+
+        return response()->json($cars, 200);
+    }
+
+
     public function show($id)
     {
         $car = Car::find($id);
@@ -47,7 +74,13 @@ class CarController extends Controller
                 'brand' => 'required|string|max:255',
                 'rental_price' => 'required|numeric|min:0',
                 'availability' => 'required|boolean',
+                'image' => 'nullable|image|max:2048', // Image validation
             ]);
+
+            // Handle image upload
+            if ($request->hasFile('image')) {
+                $validated['image'] = $request->file('image')->store('images/cars', 'public');
+            }
 
             $car = Car::create($validated);
 
@@ -69,7 +102,18 @@ class CarController extends Controller
             'brand' => 'nullable|string|max:255',
             'rental_price' => 'nullable|numeric|min:0',
             'availability' => 'nullable|boolean',
+            'image' => 'nullable|image|max:2048', // Image validation
         ]);
+
+        // Handle image upload
+        if ($request->hasFile('image')) {
+            // Delete old image
+            if ($car->image) {
+                Storage::disk('public')->delete($car->image);
+            }
+
+            $validated['image'] = $request->file('image')->store('images/cars', 'public');
+        }
 
         $car->update($validated);
 
@@ -81,6 +125,11 @@ class CarController extends Controller
         $car = Car::find($id);
         if (!$car) {
             return response()->json(['message' => 'Car not found'], 404);
+        }
+
+        // Delete image if exists
+        if ($car->image) {
+            Storage::disk('public')->delete($car->image);
         }
 
         $car->delete();

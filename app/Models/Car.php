@@ -20,6 +20,7 @@ class Car extends Model
         'rental_price',
         'availability',
         'features',
+        'image'
     ];
 
     protected $casts = [

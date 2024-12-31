@@ -26,6 +26,7 @@ class User extends Authenticatable
         'profile_picture',
         'role',
         'country_id',
+        'image'
     ];
 
     protected $hidden = [
@@ -75,11 +76,11 @@ class User extends Authenticatable
     {return $this->belongsTo(Country::class, 'country_id', 'country_id');}
 
     public function scopeAdmins($query){return $query->where('role', 'admin');}
-    public function scopeUsers($query){return $query->where('role', 'user');}
+    public function scopeCustomer($query){return $query->where('role', 'customer');}
     public function scopeGuests($query){return $query->where('role', 'guest');}
     public function scopeByGender($query, $gender){return $query->where('gender', $gender);}
 
     public function isAdmin(){return $this->role === 'admin';}
-    public function isUser(){return $this->role === 'user';}
+    public function isCustomer(){return $this->role === 'customer';}
     public function isGuest(){return $this->role === 'guest';}
 }

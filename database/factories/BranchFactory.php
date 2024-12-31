@@ -16,7 +16,7 @@ class BranchFactory extends Factory
             'location' => $this->faker->address(),
             'manager' => $this->faker->name(),
             'phone' => $this->faker->e164PhoneNumber(),
-            'is_active' => $this->faker->boolean(90),
+            'is_active' => $this->faker->boolean(80),
         ];
     }
 }

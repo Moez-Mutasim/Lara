@@ -9,7 +9,7 @@ class LocationsTableSeeder extends Seeder
 {
     public function run()
     {
-        $count = (int) config('seeder.locations_count', 20);
+        $count = (int) config('seeder.locations_count', 50);
 
         if ($count <= 0) {
             $this->command->error("Invalid location count: {$count}. Must be greater than 0.");

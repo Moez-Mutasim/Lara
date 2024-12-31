@@ -11,13 +11,13 @@ class UsersTable extends Migration
         Schema::create('users', function (Blueprint $table) {
             $table->bigIncrements('user_id');
             $table->string('name', 255);
-            $table->string('email', 255)->unique();
+            $table->string('email', 255)->unique()->nullable();
             $table->string('phone', 20)->unique()->nullable();
             $table->string('password');
             $table->enum('gender', ['male', 'female'])->nullable();
             $table->date('date_of_birth')->nullable();
             $table->string('profile_picture')->nullable();
-            $table->enum('role', ['guest', 'user', 'admin'])->default('guest');
+            $table->enum('role', ['guest', 'customer', 'admin'])->default('guest');
             $table->unsignedBigInteger('country_id')->nullable();
             $table->foreign('country_id')->references('country_id')->on('countries')->onDelete('set null');
             $table->softDeletes();

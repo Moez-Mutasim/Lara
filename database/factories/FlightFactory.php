@@ -34,6 +34,7 @@ class FlightFactory extends Factory
             'price' => $this->faker->randomFloat(2, 100, 1000),
             'seats_available' => $this->faker->numberBetween(50, 200),
             'class' => $this->faker->randomElement(['Economy', 'Business', 'First']),
+            'image' => $this->generateImage(),
         ];
     }
 
@@ -44,4 +45,24 @@ class FlightFactory extends Factory
    
     public function fullyBooked()
     {return $this->state(fn () => ['seats_available' => 0]);}
+
+    private function generateImage()
+    {
+        $imageUrl = $this->faker->optional()->imageUrl(640, 480, 'flights', true, 'Flight');
+       // return $this->faker->optional()->imageUrl(640, 480, 'flights', true, 'Flight');
+    
+        
+            $path = public_path('storage/flight_images');
+            if (!file_exists($path)) {
+                mkdir($path, 0777, true);
+            }
+    
+            return $this->faker->optional()->file(
+                base_path('resources/placeholders/flights'),
+                $path, // destination directory
+                false // save just the file name
+            ) ?: $imageUrl;
+    
+    
+    }
 }

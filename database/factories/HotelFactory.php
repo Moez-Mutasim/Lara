@@ -22,6 +22,7 @@ class HotelFactory extends Factory
             'amenities' => json_encode($this->faker->randomElements([
                 'Free WiFi', 'Breakfast included', 'Swimming pool', 'Gym', 'Airport shuttle', 'Restaurant', 'Parking',
             ], $this->faker->numberBetween(2, 5))),
+            'image' => $this->generateImage(),
             'availability' => $this->faker->boolean(80),
         ];
     }
@@ -33,10 +34,27 @@ class HotelFactory extends Factory
             'price_per_night' => $this->faker->randomFloat(2, 300, 1000),
             'rating' => $this->faker->randomFloat(1, 4.5, 5),
             'amenities' => json_encode(['Spa', 'Butler Service', 'Private Pool', 'Helipad']),
+            'image' => $this->generateImage(),
         ]);
     }
 
     
     public function unavailable()
     {return $this->state(fn () => ['availability' => false]);}
+
+    private function generateImage()
+    {
+        $imageUrl = $this->faker->optional()->imageUrl(640, 480, 'hotel', true, 'Hotel');
+
+        $path = public_path('storage/user_images');
+        if (!file_exists($path)) {
+            mkdir($path, 0777, true);
+        }
+
+        return $this->faker->optional()->file(
+            base_path('resources/placeholders/hotels'),
+            $path,
+            false
+        ) ?: $imageUrl;
+    }
 }

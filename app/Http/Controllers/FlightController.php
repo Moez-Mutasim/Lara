@@ -5,13 +5,13 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\Flight;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class FlightController extends Controller
 {
     public function __construct()
     {
-       // \Log::info('FlightController middleware setup initiated.');
-        //$this->middleware('auth:api');
+        // $this->middleware('auth:sanctum');
     }
 
     public function index(Request $request)
@@ -26,7 +26,6 @@ class FlightController extends Controller
 
         return response()->json($flights, 200);
     }
-
 
     public function show($id)
     {
@@ -46,13 +45,18 @@ class FlightController extends Controller
             'departure_time' => 'required|date',
             'arrival_time' => 'required|date|after:departure_time',
             'price' => 'required|numeric|min:0',
+            'image' => 'nullable|image|max:2048',
         ]);
+
+        // Handle image upload
+        if ($request->hasFile('image')) {
+            $validated['image'] = $request->file('image')->store('images/flights', 'public');
+        }
 
         $flight = Flight::create($validated);
 
         return response()->json($flight, 201);
     }
-
 
     public function update(Request $request, $id)
     {
@@ -69,15 +73,23 @@ class FlightController extends Controller
             'departure_time' => 'nullable|date',
             'arrival_time' => 'nullable|date|after:departure_time',
             'price' => 'nullable|numeric|min:0',
+            'image' => 'nullable|image|max:2048',
         ]);
+
+        // Handle image upload
+        if ($request->hasFile('image')) {
+            // Delete old image
+            if ($flight->image) {
+                Storage::disk('public')->delete($flight->image);
+            }
+
+            $validated['image'] = $request->file('image')->store('images/flights', 'public');
+        }
 
         $flight->update($validated);
 
         return response()->json($flight, 200);
     }
-
-
-
 
     public function destroy($id)
     {
@@ -87,12 +99,15 @@ class FlightController extends Controller
             return response()->json(['message' => 'Flight not found'], 404);
         }
 
+        // Delete image if exists
+        if ($flight->image) {
+            Storage::disk('public')->delete($flight->image);
+        }
+
         $flight->delete();
 
         return response()->json(['message' => 'Flight deleted'], 200);
     }
-
-
 
     public function search(Request $request)
     {
@@ -114,7 +129,6 @@ class FlightController extends Controller
 
         return response()->json($flights, 200);
     }
-    
 
     public function toggleAvailability($id)
     {

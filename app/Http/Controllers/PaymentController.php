@@ -5,12 +5,13 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\Payment;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class PaymentController extends Controller
 {
     public function __construct()
     {
-       // $this->middleware('auth:api');
+        $this->middleware('auth:sanctum');
     }
 
     public function index(Request $request)
@@ -29,7 +30,8 @@ class PaymentController extends Controller
             $query->orderBy($request->input('sort_by'), $request->input('sort_order', 'asc'));
         }
 
-        $payments = $query->paginate(10);
+        $perPage = $request->input('per_page', 10);
+        $payments = $query->paginate($perPage);
 
         return response()->json($payments, 200);
     }
@@ -57,6 +59,7 @@ class PaymentController extends Controller
 
             return response()->json($payment, 201);
         } catch (\Exception $e) {
+            Log::error('Payment Store Error: ' . $e->getMessage());
             return response()->json(['message' => 'An error occurred while processing the payment.'], 500);
         }
     }
@@ -95,17 +98,24 @@ class PaymentController extends Controller
 
     public function search(Request $request)
     {
+        $validated = $request->validate([
+            'booking_id' => 'nullable|exists:bookings,booking_id',
+            'start_date' => 'nullable|date',
+            'end_date' => 'nullable|date|after_or_equal:start_date',
+        ]);
+
         $query = Payment::query();
 
         if ($request->has('booking_id')) {
-            $query->where('booking_id', $request->input('booking_id'));
+            $query->where('booking_id', $validated['booking_id']);
         }
 
         if ($request->has(['start_date', 'end_date'])) {
-            $query->whereBetween('created_at', [$request->start_date, $request->end_date]);
+            $query->whereBetween('created_at', [$validated['start_date'], $validated['end_date']]);
         }
 
-        $payments = $query->paginate(10);
+        $perPage = $request->input('per_page', 10);
+        $payments = $query->paginate($perPage);
 
         return response()->json($payments, 200);
     }

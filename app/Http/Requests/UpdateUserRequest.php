@@ -17,7 +17,7 @@ class UpdateUserRequest extends FormRequest
             'name' => 'nullable|string|max:255',
             'email' => 'nullable|email|unique:users,email,' . $this->user->user_id,
             'password' => 'nullable|min:6|confirmed',
-            'role' => 'nullable|in:guest,user,admin',
+            'role' => 'nullable|in:guest,customer,admin',
         ];
     }
 }

@@ -9,7 +9,7 @@ class PaymentsTableSeeder extends Seeder
 {
     public function run()
     {
-        $count = (int) config('seeder.payments_count', 20);
+        $count = (int) config('seeder.payments_count', 50);
 
         if ($count <= 0) {
             $this->command->error("Invalid payment count: {$count}. Must be greater than 0.");

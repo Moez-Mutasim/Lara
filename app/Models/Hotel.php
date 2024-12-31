@@ -21,6 +21,7 @@ class Hotel extends Model
         'rating',
         'amenities',
         'availability',
+        'image'
     ];
 
     protected $casts = [

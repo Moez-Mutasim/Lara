@@ -9,7 +9,7 @@ class CarsTableSeeder extends Seeder
 {
     public function run()
     {
-        $count = (int) config('seeder.cars_count', 20);
+        $count = (int) config('seeder.cars_count', 50);
 
         $this->command->info("Seeding {$count} cars...");
 

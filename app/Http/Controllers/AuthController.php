@@ -17,13 +17,15 @@ class AuthController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users',
+            'email' => 'nullable|email|unique:users',
+            'phone' => 'nullable|string|unique:users',
             'password' => 'required|string|min:6',
         ]);
 
         $user = User::create([
             'name' => $validated['name'],
-            'email' => $validated['email'],
+            'email' => $validated['email']?? null,
+            'phone' => $validatedData['phone'] ?? null,
             'password' => Hash::make($validated['password']),
         ]);
 
@@ -37,27 +39,25 @@ class AuthController extends Controller
 
   
     public function login(Request $request)
-    {
-        $validated = $request->validate([
-            'email' => 'required|email',
-            'password' => 'required|string',
-        ]);
+{
+    $credentials = $request->only(['login', 'password']);
 
-        $user = User::where('email', $validated['email'])->first();
+    $user = User::where('email', $credentials['login'])
+        ->orWhere('phone', $credentials['login'])
+        ->first();
 
-        if (! $user || ! Hash::check($validated['password'], $user->password)) {
-            throw ValidationException::withMessages([
-                'email' => ['The provided credentials are incorrect.'],
-            ]);
-        }
-
-        $token = $user->createToken('auth_token')->plainTextToken;
-
-        return response()->json([
-            'user' => $user,
-            'token' => $token,
-        ]);
+    if (!$user || !\Hash::check($credentials['password'], $user->password)) {
+        return response()->json(['error' => 'Invalid credentials'], 401);
     }
+
+    $token = $user->createToken('auth_token')->plainTextToken;
+
+    return response()->json([
+        'user' => $user,
+        'token' => $token,
+    ], 200);
+}
+
 
   
     public function logout(Request $request)

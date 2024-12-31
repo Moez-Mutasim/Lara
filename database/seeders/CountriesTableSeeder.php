@@ -9,9 +9,17 @@ class CountriesTableSeeder extends Seeder
 {
     public function run()
     {
-        $count = (int) config('seeder.countries_count', 20);
+        $count = (int) config('seeder.countries_count', 50);
 
         $predefinedCountries = [
+            [
+                'name' => 'Kingdom of Saudi Arabia',
+                'code' => 'SA',
+                'iso_alpha_3' => 'KSA',
+                'continent' => 'Asia',
+                'currency' => 'RSA',
+                'is_active' => true,
+            ],
             [
                 'name' => 'United States',
                 'code' => 'US',

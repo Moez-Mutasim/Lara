@@ -9,7 +9,7 @@ class HotelsTableSeeder extends Seeder
 {
     public function run()
     {
-        $count = (int) config('seeder.hotels_count', 20);
+        $count = (int) config('seeder.hotels_count', 50);
 
         $this->command->info("Seeding {$count} hotels...");
 

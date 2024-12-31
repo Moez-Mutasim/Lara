@@ -18,7 +18,6 @@ class Notification extends Model
         'user_id',
         'message',
         'is_read',
-        'type',
     ];
 
     protected $casts = [
@@ -30,13 +29,13 @@ class Notification extends Model
 
     public function scopeUnread($query){return $query->where('is_read', false);}
     public function scopeRead($query){return $query->where('is_read', true);}
-    public function scopeByType($query, $type){return $query->where('type', $type);}
+    //public function scopeByType($query, $type){return $query->where('type', $type);}
 
 
     public function getFormattedMessageAttribute(){return ucfirst($this->message);}
 
 
-    public function user(){return $this->belongsTo(User::class, 'user_id', 'id');}
+    public function user(){return $this->belongsTo(User::class);}
 
 
     public function markAsRead(){$this->update(['is_read' => true]);}

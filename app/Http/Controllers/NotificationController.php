@@ -11,7 +11,7 @@ class NotificationController extends Controller
 {
     public function __construct()
     {
-       // $this->middleware('auth:api');
+        $this->middleware('auth:api');
     }
 
     public function index(Request $request)
@@ -31,9 +31,9 @@ class NotificationController extends Controller
         return response()->json($notifications, 200);
     }
 
-    public function show($id)
+    public function show($notification_id)
     {
-        $notification = Notification::find($id);
+        $notification = Notification::find($notification_id);
 
         return $notification
             ? response()->json($notification, 200)
@@ -45,6 +45,8 @@ class NotificationController extends Controller
         try {
             $validated = $request->validated();
 
+            \Log::info('Creating notification with data: ', $validated);
+
             $notification = Notification::create($validated);
 
             return response()->json(['data' => $notification], 201);
@@ -53,18 +55,18 @@ class NotificationController extends Controller
         }
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request, $notification_id)
     {
-        $notification = Notification::find($id);
+        $notification = Notification::find($notification_id);
         if (!$notification) {
             return response()->json(['message' => 'Notification not found'], 404);
         }
 
         $validated = $request->validate([
-            'title' => 'nullable|string|max:255',
-            'content' => 'nullable|string',
-            'type' => 'nullable|string|in:info,warning,error',
-            'status' => 'nullable|boolean',
+            'user_id' => 'nullable|exists:users,user_id',
+            'message' => 'nullable|text',
+            'is_read' => 'nullable|boolean',
+           // 'status' => 'nullable|boolean',
         ]);
 
         $notification->update($validated);
@@ -72,9 +74,9 @@ class NotificationController extends Controller
         return response()->json($notification, 200);
     }
 
-    public function destroy($id)
+    public function destroy($notification_id)
     {
-        $notification = Notification::find($id);
+        $notification = Notification::find($notification_id);
         if (!$notification) {
             return response()->json(['message' => 'Notification not found'], 404);
         }
@@ -84,14 +86,14 @@ class NotificationController extends Controller
         return response()->json(['message' => 'Notification deleted'], 200);
     }
 
-    public function markAsRead($id)
+    public function markAsRead($notification_id)
     {
-        $notification = Notification::find($id);
+        $notification = Notification::find($notification_id);
         if (!$notification) {
             return response()->json(['message' => 'Notification not found'], 404);
         }
 
-        $notification->status = true; // Assuming `status` indicates read/unread
+        $notification->is_read = true;
         $notification->save();
 
         return response()->json(['message' => 'Notification marked as read', 'notification' => $notification], 200);

@@ -19,6 +19,7 @@ class CarFactory extends Factory
             'features' => json_encode($this->faker->randomElements([
                 'GPS', 'Air Conditioning', 'Heated Seats', 'Bluetooth', 'Cruise Control',
             ], $this->faker->numberBetween(1, 3))),
+            'image' => $this->generateImage(),
         ];
     }
 
@@ -28,10 +29,29 @@ class CarFactory extends Factory
         return $this->state(fn () => [
             'rental_price' => $this->faker->randomFloat(2, 200, 500),
             'features' => json_encode(['Leather Seats', 'Premium Sound System', 'Sunroof']),
+            'image' => $this->generateImage(),
         ]);
     }
 
     
     public function unavailable()
     {return $this->state(fn () => ['availability' => false]);}
+
+    private function generateImage()
+    {
+        // Use Faker to generate a random image URL
+        $imageUrl = $this->faker->optional()->imageUrl(640, 480, 'cars', true, 'Car');
+
+        // Alternatively, generate local placeholder paths for local testing
+        $path = public_path('storage/car_images');
+        if (!file_exists($path)) {
+            mkdir($path, 0777, true);
+        }
+
+        return $this->faker->optional()->file(
+            base_path('resources/placeholders/cars'),
+            $path, // destination directory
+            false // save just the file name
+        ) ?: $imageUrl;
+    }
 }

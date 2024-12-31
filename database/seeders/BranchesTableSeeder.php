@@ -9,7 +9,7 @@ class BranchesTableSeeder extends Seeder
 {
     public function run()
     {
-        $count = (int) config('seeder.branches_count', 10);
+        $count = (int) config('seeder.branches_count', 50);
 
         $this->command->info("Seeding {$count} branches...");
 

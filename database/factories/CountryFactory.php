@@ -17,7 +17,7 @@ class CountryFactory extends Factory
             'name' => $this->faker->country(),
             'code' => $this->faker->unique()->countryCode(),
             'iso_alpha_3' => $this->faker->unique()->lexify('???'),
-            'continent' => $this->faker->randomElement(['Africa', 'Asia', 'Europe', 'North America', 'Oceania', 'South America', 'Antarctica']),
+            'continent' => $this->faker->randomElement(['Africa', 'Asia', 'Europe', 'North America', 'South America', 'Australia']),
             'currency' => $this->faker->currencyCode(),
             'is_active' => $this->faker->boolean(90),
         ];
