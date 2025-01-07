@@ -15,7 +15,7 @@ class UserController extends Controller
 
     public function index(Request $request)
     {
-        $this->authorizeAdmin();
+        $this->authorize('viewAny', User::class);
 
         $query = User::query();
 
@@ -27,158 +27,108 @@ class UserController extends Controller
             $query->where('email', 'like', '%' . $request->email . '%');
         }
 
+        if ($request->has('phone')) {
+            $query->where('phone', 'like', '%' . $request->phone . '%');
+        }
+
+        if ($request->has('role')) {
+            $query->where('role', $request->role);
+        }
+
+        if ($request->has('country_id')) {
+            $query->where('country_id', $request->country_id);
+        }
+
         $users = $query->paginate(10);
 
-        return response()->json($users, 200);
+        return response()->json(['status' => 'success', 'data' => $users], 200);
     }
-
-
 
     public function profile()
-{
-    $user = auth()->user();
+    {
+        $user = auth()->user();
 
-    if (!$user) {
-        return response()->json(['message' => 'Unauthorized'], 401);
+        return $user
+            ? response()->json(['status' => 'success', 'data' => $user], 200)
+            : response()->json(['message' => 'Unauthorized'], 401);
     }
-
-    return response()->json($user, 200);
-}
 
 
     public function show($id)
     {
-        if ($id === 'profile') {
-            return $this->profile();
-        }
+        $user = User::findOrFail($id);
+        $this->authorize('view', $user);
 
-        $user = User::find($id);
-
-        if (!$user) {
-            return response()->json(['message' => 'User not found'], 404);
-        }
-
-        if (auth()->user()->role !== 'admin' && auth()->id() != $id) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
-
-        return response()->json($user, 200);
+        return response()->json(['status' => 'success', 'data' => $user], 200);
     }
+
 
     public function store(Request $request)
     {
-        try {
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
                 'email' => 'required|email|unique:users',
+                'phone' => 'nullable|string|max:20|unique:users',
                 'password' => 'required|string|min:6',
-                'image' => 'nullable|image|max:2048',
+                'gender' => 'nullable|in:male,female',
+                'date_of_birth' => 'nullable|date',
+                'country_id' => 'nullable|exists:countries,country_id',
+                'profile_picture' => 'nullable|image|max:2048',
             ]);
 
-            if ($request->hasFile('image')) {
-                $imagePath = $request->file('image')->store('user_images', 'public');
-                $validated['image'] = $imagePath;
+            if ($request->hasFile('profile_picture')) {
+                $validated['profile_picture'] = $request->file('profile_picture')->store('user_images', 'public');
             }
 
-            $user = User::create([
-                'name' => $validated['name'],
-                'email' => $validated['email'],
+            $user = User::create(array_merge($validated, [
                 'password' => bcrypt($validated['password']),
-                'image' => $validated['image'] ?? null,
-            ]);
-
-            return response()->json([
-                'message' => 'User created successfully',
-                'user' => $user,
-            ], 201);
-        } catch (\Exception $e) {
-            \Log::error('Error creating user: ' . $e->getMessage());
-            return response()->json(['message' => 'An error occurred while creating the user.'], 500);
-        }
+            ]));
+    
+            return response()->json(['status' => 'success','data' => $user,], 201);
     }
 
     public function update(Request $request, $id)
     {
-        $user = User::find($id);
-
-        if (!$user) {
-            return response()->json(['message' => 'User not found'], 404);
-        }
-
-        if (auth()->user()->role !== 'admin' && auth()->id() != $id) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
+        $user = User::findOrFail($id);
+        $this->authorize('update', $user);
 
         $validated = $request->validate([
             'name' => 'nullable|string|max:255',
             'email' => 'nullable|email|unique:users,email,' . $id,
+            'phone' => 'nullable|string|max:20|unique:users,phone,' . $id,
             'password' => 'nullable|string|min:6',
-            'image' => 'nullable|image|max:2048',
+            'gender' => 'nullable|in:male,female',
+            'date_of_birth' => 'nullable|date',
+            'country_id' => 'nullable|exists:countries,country_id',
+            'profile_picture' => 'nullable|image|max:2048',
         ]);
 
-        if ($request->hasFile('image')) {
-            if ($user->image) {
-                Storage::disk('public')->delete($user->image);
+        if ($request->hasFile('profile_picture')) {
+            if ($user->profile_picture) {
+                Storage::disk('public')->delete($user->profile_picture);
             }
-            $imagePath = $request->file('image')->store('user_images', 'public');
-            $validated['image'] = $imagePath;
+            $validated['profile_picture'] = $request->file('profile_picture')->store('user_images', 'public');
         }
 
-        $user->update($request->except(['password', 'image']));
+        $user->update(array_merge($validated, [
+            'password' => $request->filled('password') ? bcrypt($request->password) : $user->password,
+        ]));
 
-        if ($request->filled('password')) {
-            $user->update(['password' => bcrypt($request->password)]);
-        }
-
-        if (isset($validated['image'])) {
-            $user->update(['image' => $validated['image']]);
-        }
-
-        return response()->json([
-            'message' => 'User updated successfully',
-            'user' => $user,
-        ], 200);
+        return response()->json(['status' => 'success', 'data' => $user], 200);
     }
 
     public function destroy($id)
     {
-        $this->authorizeAdmin();
+        $user = User::findOrFail($id);
+        $this->authorize('delete', $user);
 
-        $user = User::find($id);
-
-        if (!$user) {
-            return response()->json(['message' => 'User not found'], 404);
-        }
-
-        if ($user->image) {
-            Storage::disk('public')->delete($user->image);
+        if ($user->profile_picture) {
+            Storage::disk('public')->delete($user->profile_picture);
         }
 
         $user->delete();
 
-        return response()->json(['message' => 'User deleted successfully'], 200);
+        return response()->json(['status' => 'success', 'message' => 'User deleted successfully'], 200);
     }
 
-    public function search(Request $request)
-    {
-        $this->authorizeAdmin();
-
-        $query = User::query();
-
-        if ($request->has('search')) {
-            $query->where('name', 'like', '%' . $request->search . '%')
-                  ->orWhere('email', 'like', '%' . $request->search . '%');
-        }
-
-        $users = $query->paginate(10);
-
-        return response()->json($users, 200);
-    }
-
-    private function authorizeAdmin()
-    {
-        if (auth()->user()->role !== 'admin') {
-            abort(403, 'Unauthorized');
-        }
-    }
 }

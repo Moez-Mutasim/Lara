@@ -16,6 +16,7 @@ class ReviewsTable extends Migration
             $table->unsignedBigInteger('car_id')->nullable();
             $table->decimal('rating', 2, 1)->nullable()->default(null);
             $table->text('comment')->nullable();
+            $table->boolean('is_verified')->default(false);
             $table->timestamps();
             $table->softDeletes();
 
@@ -28,6 +29,8 @@ class ReviewsTable extends Migration
             $table->index('flight_id');
             $table->index('hotel_id');
             $table->index('car_id');
+            $table->index('rating');
+            $table->index('is_verified');
         });
     }
 

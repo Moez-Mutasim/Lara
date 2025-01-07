@@ -8,58 +8,66 @@ use App\Http\Controllers\{
     HotelController,
     CarController,
     BookingController,
-    PaymentController,
     NotificationController,
+    PaymentController,
     ReviewController,
-    //AdminController
+    PassportController,
+    SearchController,
+    ProfileController,
+    ExploreController
 };
 
-// Prefix all API routes with /api
-//Route::prefix('api')->group(function () {
+// Public Routes
+Route::prefix('public')->group(function () {
+    Route::get('flights/search', [SearchController::class, 'searchFlights']);
+    Route::get('hotels/search', [SearchController::class, 'searchHotels']);
+    Route::get('cars/search', [SearchController::class, 'searchCars']);
+    Route::get('explore', [ExploreController::class, 'index']); // Explore page
+});
 
-    // Public routes
-    Route::prefix('public')->group(function () {
-        Route::get('flights/search', [FlightController::class, 'search']);
-        Route::get('hotels/search', [HotelController::class, 'search']);
-        Route::get('cars/search', [CarController::class, 'search']);
+// Authentication Routes
+Route::post('register', [AuthController::class, 'register']);
+Route::post('login', [AuthController::class, 'login']);
+
+// Authenticated Routes
+Route::middleware(['auth:sanctum'])->group(function () {
+    // User Profile
+    Route::get('profile', [ProfileController::class, 'index']);
+    Route::put('profile', [ProfileController::class, 'update']);
+    Route::post('logout', [AuthController::class, 'logout']);
+
+    // Favorites
+    Route::get('favorites', [ProfileController::class, 'favorites']);
+    Route::post('favorites', [ProfileController::class, 'addFavorite']);
+    Route::delete('favorites/{id}', [ProfileController::class, 'removeFavorite']);
+
+    // Bookings
+    Route::apiResource('bookings', BookingController::class);
+    Route::put('bookings/{id}/cancel', [BookingController::class, 'cancel']); // Cancel a booking
+
+    // Payments
+    Route::apiResource('payments', PaymentController::class);
+    Route::put('payments/{id}/mark-completed', [PaymentController::class, 'markAsCompleted']);
+
+    // Reviews
+    Route::apiResource('reviews', ReviewController::class);
+
+    // Notifications
+    Route::apiResource('notifications', NotificationController::class)->only(['index', 'show', 'update']);
+    Route::put('notifications/{id}/mark-read', [NotificationController::class, 'markAsRead']);
+
+    // Passports
+    Route::apiResource('passports', PassportController::class);
+
+    // Admin-only Routes
+    Route::middleware(['role:admin'])->group(function () {
+        Route::put('flights/{id}/toggle-availability', [FlightController::class, 'toggleAvailability']);
+        Route::put('hotels/{id}/toggle-availability', [HotelController::class, 'toggleAvailability']);
+        Route::put('cars/{id}/toggle-availability', [CarController::class, 'toggleAvailability']);
     });
+});
 
-    // Authentication Routes
-    Route::post('register', [AuthController::class, 'register']);
-    Route::post('login', [AuthController::class, 'login']);
-
-    // Authenticated Routes
-    Route::middleware(['auth:sanctum'])->group(function () {
-        Route::apiResource('users', UserController::class);
-        Route::get('users/search', [UserController::class, 'search'])->name('users.search');
-        Route::get('users/profile', [UserController::class, 'profile'])->name('profile');
-        Route::post('logout', [AuthController::class, 'logout']);
-
-        Route::apiResource('bookings', BookingController::class);
-
-        Route::get('payments/search', [PaymentController::class, 'search']);
-        Route::apiResource('payments', PaymentController::class);
-        Route::put('payments/{id}/mark-as-completed', [PaymentController::class, 'markAsCompleted']);
-
-        Route::apiResource('reviews', ReviewController::class);
-        Route::get('reviews/search', [ReviewController::class, 'search']);
-
-        Route::get('notifications/search', [NotificationController::class, 'search']);
-        Route::apiResource('notifications', NotificationController::class)->except(['create', 'edit']);
-        Route::put('notifications/{id}/mark-as-read', [NotificationController::class, 'markAsRead']);
-
-
-        // Admin-only actions
-        Route::middleware(['role:admin'])->group(function () {
-            //Route::post('admin-only-action', [AdminController::class, 'performAction']);
-            Route::put('flights/{id}/toggle-availability', [FlightController::class, 'toggleAvailability']);
-            Route::put('hotels/{id}/toggle-availability', [HotelController::class, 'toggleAvailability']);
-            Route::put('cars/{id}/toggle-availability', [CarController::class, 'toggleAvailability']);
-        });
-    });
-
-    // Test
-    Route::get('/test', function () {
-        return response()->json(['message' => 'API is working']);
-    });
-//});
+// Test Endpoint
+Route::get('/test', function () {
+    return response()->json(['message' => 'API is working']);
+});

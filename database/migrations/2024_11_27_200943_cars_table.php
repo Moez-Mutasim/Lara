@@ -16,9 +16,6 @@ class CarsTable extends Migration
             $table->boolean('availability')->default(true);
             $table->string('image')->nullable();
             $table->json('features')->nullable();
-           
-            //$table->unsignedBigInteger('branch_id')->nullable();
-            //$table->foreign('branch_id')->references('branch_id')->on('branches')->onDelete('cascade');
             $table->softDeletes();
             $table->timestamps();
 

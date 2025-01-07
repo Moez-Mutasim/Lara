@@ -22,7 +22,7 @@ class FlightsTable extends Migration
             $table->string('image')->nullable();
             $table->timestamps();
 
-            // Foreign key constraints
+            
             $table->foreign('departure_id')->references('location_id')->on('locations')->onDelete('cascade');
             $table->foreign('destination_id')->references('location_id')->on('locations')->onDelete('cascade');
         });

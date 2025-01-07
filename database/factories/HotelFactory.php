@@ -24,10 +24,10 @@ class HotelFactory extends Factory
             ], $this->faker->numberBetween(2, 5))),
             'image' => $this->generateImage(),
             'availability' => $this->faker->boolean(80),
+            'rooms_available' => $this->faker->numberBetween(0, 100),
         ];
     }
 
-    
     public function luxury()
     {
         return $this->state(fn () => [
@@ -35,18 +35,20 @@ class HotelFactory extends Factory
             'rating' => $this->faker->randomFloat(1, 4.5, 5),
             'amenities' => json_encode(['Spa', 'Butler Service', 'Private Pool', 'Helipad']),
             'image' => $this->generateImage(),
+            'rooms_available' => $this->faker->numberBetween(1, 50),
         ]);
     }
 
-    
     public function unavailable()
-    {return $this->state(fn () => ['availability' => false]);}
+    {
+        return $this->state(fn () => ['availability' => false, 'rooms_available' => 0]);
+    }
 
     private function generateImage()
     {
         $imageUrl = $this->faker->optional()->imageUrl(640, 480, 'hotel', true, 'Hotel');
 
-        $path = public_path('storage/user_images');
+        $path = public_path('storage/hotel_images');
         if (!file_exists($path)) {
             mkdir($path, 0777, true);
         }

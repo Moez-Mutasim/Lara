@@ -23,33 +23,37 @@ class Flight extends Model
         'price',
         'seats_available',
         'class',
-        'image'
+        'is_available',
+        'image',
     ];
 
     protected $casts = [
         'departure_time' => 'datetime',
         'arrival_time' => 'datetime',
         'price' => 'decimal:2',
+        'is_available' => 'boolean',
     ];
 
 
-    public function scopeAvailable($query){return $query->where('seats_available', '>', 0);}
-    public function scopeByClass($query, $class){return $query->where('class', $class);}
-    public function scopeByRoute($query, $departure, $destination){return $query->where('departure', $departure)->where('destination', $destination);}
+
+    // Relationships
+    public function departure(){return $this->belongsTo(Location::class, 'departure_id', 'location_id');}
+    public function destination(){return $this->belongsTo(Location::class, 'destination_id', 'location_id');}
 
 
+    
+    // Scopes
+    public function scopeAvailable($query){return $query->where('is_available', true)->where('seats_available', '>', 0);}
+
+
+    // Aditions
     public function getFormattedPriceAttribute(){return '$' . number_format($this->price, 2);}
-    public function setDurationAttribute($value){$this->attributes['duration'] = $value . ' hours';}
-
-
-    public function bookings(){return $this->hasMany(Booking::class, 'flight_id', 'flight_id');}
-
-
     public function isFullyBooked(){return $this->seats_available <= 0;}
     public function bookSeat()
     {
         if ($this->isFullyBooked()) {
-            throw new \Exception('No seats available for this flight.');}
+            throw new \Exception('No seats available for this flight.');
+        }
         $this->decrement('seats_available');
     }
 }

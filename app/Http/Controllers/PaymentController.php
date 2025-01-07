@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Models\Payment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -16,6 +15,8 @@ class PaymentController extends Controller
 
     public function index(Request $request)
     {
+        $this->authorize('viewAny', Payment::class);
+
         $query = Payment::query();
 
         if ($request->has('payment_status')) {
@@ -26,82 +27,94 @@ class PaymentController extends Controller
             $query->where('payment_method', $request->input('payment_method'));
         }
 
+        if ($request->has('currency')) {
+            $query->where('currency', $request->input('currency'));
+        }
+
+        if ($request->has('booking_id')) {
+            $query->where('booking_id', $request->input('booking_id'));
+        }
+
         if ($request->has('sort_by')) {
             $query->orderBy($request->input('sort_by'), $request->input('sort_order', 'asc'));
         }
 
-        $perPage = $request->input('per_page', 10);
-        $payments = $query->paginate($perPage);
+        $payments = $query->paginate($request->input('per_page', 10));
 
-        return response()->json($payments, 200);
+        return response()->json([
+            'status' => 'success',
+            'data' => $payments,
+        ], 200);
     }
 
     public function show($id)
     {
-        $payment = Payment::find($id);
+        $payment = Payment::findOrFail($id);
 
-        return $payment
-            ? response()->json($payment, 200)
-            : response()->json(['message' => 'Payment not found'], 404);
+        $this->authorize('view', $payment);
+
+        return response()->json(['status' => 'success', 'data' => $payment], 200);
     }
 
     public function store(Request $request)
     {
-        try {
-            $validated = $request->validate([
-                'booking_id' => 'required|exists:bookings,booking_id',
-                'amount' => 'required|numeric|min:0',
-                'payment_method' => 'required|string|max:50',
-                'payment_status' => 'required|in:pending,completed,failed',
-            ]);
+        $this->authorize('create', Payment::class);
 
-            $payment = Payment::create($validated);
+        $validated = $request->validate([
+            'booking_id' => 'required|exists:bookings,booking_id',
+            'amount' => 'required|numeric|min:0',
+            'payment_method' => 'required|string|max:50',
+            'payment_status' => 'required|in:pending,completed,failed,refunded',
+            'transaction_fee' => 'nullable|numeric|min:0',
+            'currency' => 'required|string|size:3',
+        ]);
 
-            return response()->json($payment, 201);
-        } catch (\Exception $e) {
-            Log::error('Payment Store Error: ' . $e->getMessage());
-            return response()->json(['message' => 'An error occurred while processing the payment.'], 500);
-        }
+        $validated['payment_reference'] = uniqid('PAY_');
+
+        $payment = Payment::create($validated);
+
+        return response()->json(['status' => 'success', 'data' => $payment], 201);
     }
 
     public function update(Request $request, $id)
     {
-        $payment = Payment::find($id);
+        $payment = Payment::findOrFail($id);
 
-        if (!$payment) {
-            return response()->json(['message' => 'Payment not found'], 404);
-        }
+        $this->authorize('update', $payment);
 
         $validated = $request->validate([
             'amount' => 'nullable|numeric|min:0',
             'payment_method' => 'nullable|string|max:50',
-            'payment_status' => 'nullable|in:pending,completed,failed',
+            'payment_status' => 'nullable|in:pending,completed,failed,refunded',
+            'transaction_fee' => 'nullable|numeric|min:0',
+            'currency' => 'nullable|string|size:3',
         ]);
 
         $payment->update($validated);
 
-        return response()->json($payment, 200);
+        return response()->json(['status' => 'success', 'data' => $payment], 200);
     }
 
     public function destroy($id)
     {
-        $payment = Payment::find($id);
+        $payment = Payment::findOrFail($id);
 
-        if (!$payment) {
-            return response()->json(['message' => 'Payment not found'], 404);
-        }
+        $this->authorize('delete', $payment);
 
         $payment->delete();
 
-        return response()->json(['message' => 'Payment deleted'], 200);
+        return response()->json(['status' => 'success', 'message' => 'Payment deleted'], 200);
     }
 
     public function search(Request $request)
     {
+        $this->authorize('viewAny', Payment::class);
+
         $validated = $request->validate([
             'booking_id' => 'nullable|exists:bookings,booking_id',
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
+            'currency' => 'nullable|string|size:3',
         ]);
 
         $query = Payment::query();
@@ -114,23 +127,23 @@ class PaymentController extends Controller
             $query->whereBetween('created_at', [$validated['start_date'], $validated['end_date']]);
         }
 
-        $perPage = $request->input('per_page', 10);
-        $payments = $query->paginate($perPage);
+        if ($request->has('currency')) {
+            $query->where('currency', $validated['currency']);
+        }
 
-        return response()->json($payments, 200);
+        $payments = $query->paginate($request->input('per_page', 10));
+
+        return response()->json(['status' => 'success', 'data' => $payments], 200);
     }
 
     public function markAsCompleted($id)
     {
-        $payment = Payment::find($id);
+        $payment = Payment::findOrFail($id);
 
-        if (!$payment) {
-            return response()->json(['message' => 'Payment not found'], 404);
-        }
+        $this->authorize('update', $payment);
 
-        $payment->payment_status = 'completed';
-        $payment->save();
+        $payment->update(['payment_status' => 'completed', 'paid_at' => now()]);
 
-        return response()->json(['message' => 'Payment marked as completed', 'payment' => $payment], 200);
+        return response()->json(['status' => 'success', 'message' => 'Payment marked as completed', 'data' => $payment], 200);
     }
 }

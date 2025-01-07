@@ -17,25 +17,27 @@ class CarFactory extends Factory
             'rental_price' => $this->faker->randomFloat(2, 30, 300),
             'availability' => $this->faker->boolean(80),
             'features' => json_encode($this->faker->randomElements([
-                'GPS', 'Air Conditioning', 'Heated Seats', 'Bluetooth', 'Cruise Control',
-            ], $this->faker->numberBetween(1, 3))),
+                'GPS', 'Air Conditioning', 'Heated Seats', 'Bluetooth', 'Cruise Control', 'Backup Camera',
+            ], $this->faker->numberBetween(1, 5))),
             'image' => $this->generateImage(),
         ];
     }
 
-    
     public function luxury()
     {
         return $this->state(fn () => [
             'rental_price' => $this->faker->randomFloat(2, 200, 500),
-            'features' => json_encode(['Leather Seats', 'Premium Sound System', 'Sunroof']),
+            'features' => json_encode([
+                'Leather Seats', 'Premium Sound System', 'Sunroof', 'Advanced Safety Features',
+            ]),
             'image' => $this->generateImage(),
         ]);
     }
 
-    
     public function unavailable()
-    {return $this->state(fn () => ['availability' => false]);}
+    {
+        return $this->state(fn () => ['availability' => false]);
+    }
 
     private function generateImage()
     {

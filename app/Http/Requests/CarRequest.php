@@ -14,12 +14,12 @@ class CarRequest extends FormRequest
     public function rules()
     {
         return [
-            'model' => 'required|string|max:255',
+            'model' => 'required|integer|min:1900|max:' . date('Y'),
             'brand' => 'required|string|max:255',
             'rental_price' => 'required|numeric|min:0',
             'availability' => 'required|boolean',
-            'features' => 'nullable|array',
-            'branch_id' => 'required|exists:branches,branch_id',
+            'features' => 'nullable|json',
+            'image' => 'nullable|image|max:2048',
         ];
     }
 }

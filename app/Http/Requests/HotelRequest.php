@@ -16,10 +16,12 @@ class HotelRequest extends FormRequest
         return [
             'name' => 'required|string|max:255',
             'city_id' => 'required|exists:locations,location_id',
-            'rating' => 'nullable|numeric|between:1,5',
             'price_per_night' => 'required|numeric|min:0',
+            'rating' => 'nullable|numeric|between:1,5',
             'amenities' => 'nullable|array',
             'availability' => 'required|boolean',
+            'rooms_available' => 'required|integer|min:0',
+            'image' => 'nullable|image|max:2048',
         ];
     }
 }

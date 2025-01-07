@@ -21,6 +21,8 @@ class FlightRequest extends FormRequest
             'arrival_time' => 'required|date|after:departure_time',
             'price' => 'required|numeric|min:0',
             'class' => 'required|in:Economy,Business,First',
+            'seats_available' => 'required|integer|min:0',
+            'is_available' => 'nullable|boolean',
         ];
     }
 }

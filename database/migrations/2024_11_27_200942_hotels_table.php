@@ -18,12 +18,13 @@ class HotelsTable extends Migration
             $table->string('image')->nullable();
             $table->json('amenities')->nullable();
             $table->boolean('availability')->default(true);
+            $table->integer('rooms_available')->default(0);
             $table->softDeletes();
             $table->timestamps();
 
 
-            $table->index('city_id');
-            $table->index('availability');
+            $table->index(['city_id', 'availability']);
+            $table->index('rating');
         });
     }
 

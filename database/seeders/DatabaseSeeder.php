@@ -10,7 +10,6 @@ class DatabaseSeeder extends Seeder
     public function run()
     {
         $seeders = [
-            BranchesTableSeeder::class,
             CountriesTableSeeder::class,
             LocationsTableSeeder::class,
             UsersTableSeeder::class,
@@ -21,6 +20,9 @@ class DatabaseSeeder extends Seeder
             NotificationsTableSeeder::class,
             PaymentsTableSeeder::class,
             ReviewsTableSeeder::class,
+            PassportsTableSeeder::class,
+            SearchSeeder::class,
+            FavoriteSeeder::class,
         ];
 
         if ($seedersToRun = $this->command->option('seeders')) {

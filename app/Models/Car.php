@@ -30,15 +30,20 @@ class Car extends Model
     ];
 
 
-    public function scopeAvailable($query){return $query->where('availability', true);}
-    public function scopeUnavailable($query){return $query->where('availability', false);}
-    public function scopeByBrand($query, $brand){return $query->where('brand', $brand);}
 
-    
-    public function getFormattedRentalPriceAttribute(){return '$' . number_format($this->rental_price, 2);}
-    public function setRentalPriceAttribute($value){$this->attributes['rental_price'] = round($value, 2);}
+    public function scopeAvailable($query)
+    {
+        return $query->where('availability', true);
+    }
+
+    public function scopeByBrand($query, $brand)
+    {
+        return $query->where('brand', $brand);
+    }
 
 
-    public function markAsUnavailable(){$this->update(['availability' => false]);}
-    public function markAsAvailable(){$this->update(['availability' => true]);}
+    public function getFormattedRentalPriceAttribute()
+    {
+        return '$' . number_format($this->rental_price, 2);
+    }
 }

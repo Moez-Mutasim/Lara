@@ -11,5 +11,6 @@ class Authenticate extends Middleware
         if (!$request->expectsJson()) {
             return route('login');
         }
+        return response()->json(['message' => 'Authentication required'], 401);
     }
 }

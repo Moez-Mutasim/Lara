@@ -30,32 +30,66 @@ class Booking extends Model
         'status' => 'string',
     ];
 
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 
-    public function user(){return $this->belongsTo(User::class);}
-    public function flight(){return $this->belongsTo(Flight::class);}
-    public function hotel(){return $this->belongsTo(Hotel::class);}
-    public function car(){return $this->belongsTo(Car::class);}
+    public function flight()
+    {
+        return $this->belongsTo(Flight::class);
+    }
 
+    public function hotel()
+    {
+        return $this->belongsTo(Hotel::class);
+    }
 
-    public function scopePending($query){return $query->where('status', 'pending');}
-    public function scopeCompleted($query){return $query->where('status', 'completed');}
-    public function scopeCanceled($query){return $query->where('status', 'canceled');}
+    public function car()
+    {
+        return $this->belongsTo(Car::class);
+    }
 
-    
+    // Scopes
+    public function scopePending($query)
+    {
+        return $query->where('status', 'pending');
+    }
 
-    public function getFormattedTotalPriceAttribute(){return '$' . number_format($this->total_price, 2);}
-    public function setBookingDateAttribute($value){
-    if ($value instanceof \DateTime) {
-        $this->attributes['booking_date'] = $value->format('Y-m-d');
-    } elseif (is_string($value)) {
-        $this->attributes['booking_date'] = (new \DateTime($value))->format('Y-m-d');
-    } else {
-        throw new \InvalidArgumentException('Invalid booking date format.');
-    }}
-    public function getBookingDateAttribute($value){return new \DateTime($value);}
-    
+    public function scopeCompleted($query)
+    {
+        return $query->where('status', 'confirmed');
+    }
 
+    public function scopeCanceled($query)
+    {
+        return $query->where('status', 'canceled');
+    }
 
-    public function isPending(){return $this->status === 'pending';}
-    public function markAsCompleted(){$this->update(['status' => 'completed']);}
+    public function getFormattedTotalPriceAttribute()
+    {
+        return '$' . number_format($this->total_price, 2);
+    }
+
+    public function setBookingDateAttribute($value)
+    {
+        $this->attributes['booking_date'] = is_string($value)
+            ? (new \DateTime($value))->format('Y-m-d')
+            : $value->format('Y-m-d');
+    }
+
+    public function getBookingDateAttribute($value)
+    {
+        return (new \DateTime($value))->format('Y-m-d');
+    }
+
+    public function isPending()
+    {
+        return $this->status === 'pending';
+    }
+
+    public function markAsCompleted()
+    {
+        $this->update(['status' => 'confirmed']);
+    }
 }

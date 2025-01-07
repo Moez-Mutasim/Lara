@@ -26,7 +26,8 @@ class User extends Authenticatable
         'profile_picture',
         'role',
         'country_id',
-        'image'
+        'email_verified',
+        'phone_verified',
     ];
 
     protected $hidden = [
@@ -35,8 +36,9 @@ class User extends Authenticatable
     ];
 
     protected $casts = [
-        'email_verified_at' => 'datetime',
         'date_of_birth' => 'date',
+        'email_verified' => 'boolean',
+        'phone_verified' => 'boolean',
     ];
 
     public function getFormattedDateOfBirthAttribute()
@@ -63,24 +65,19 @@ class User extends Authenticatable
             : asset('images/default-profile.png');
     }
 
-    public function bookings()
-    {return $this->hasMany(Booking::class, 'user_id', 'user_id');}
 
-    public function reviews()
-    {return $this->hasMany(Review::class, 'user_id', 'user_id');}
 
-    public function notifications()
-    {return $this->hasMany(Notification::class, 'user_id', 'user_id');}
-
-    public function country()
-    {return $this->belongsTo(Country::class, 'country_id', 'country_id');}
+    public function bookings(){return $this->hasMany(Booking::class, 'user_id', 'user_id');}
+    public function reviews(){return $this->hasMany(Review::class, 'user_id', 'user_id');}
+    public function notifications(){return $this->hasMany(Notification::class, 'user_id', 'user_id');}
+    public function country(){return $this->belongsTo(Country::class, 'country_id', 'country_id');}
+    public function passport(){return $this->hasOne(Passport::class, 'user_id', 'user_id');}
 
     public function scopeAdmins($query){return $query->where('role', 'admin');}
-    public function scopeCustomer($query){return $query->where('role', 'customer');}
-    public function scopeGuests($query){return $query->where('role', 'guest');}
+    public function scopeAgents($query){return $query->where('role', 'agent');}
     public function scopeByGender($query, $gender){return $query->where('gender', $gender);}
 
     public function isAdmin(){return $this->role === 'admin';}
-    public function isCustomer(){return $this->role === 'customer';}
-    public function isGuest(){return $this->role === 'guest';}
+    public function isAgent(){return $this->role === 'agent';}
+
 }

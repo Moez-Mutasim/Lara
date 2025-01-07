@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Models\Hotel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -11,21 +10,32 @@ class HotelController extends Controller
 {
     public function __construct()
     {
-        // Uncomment the middleware for authentication when required
-        // $this->middleware('auth:sanctum');
+        $this->middleware('auth:sanctum')->except(['index', 'show']);
     }
 
     public function index(Request $request)
     {
+        $this->authorize('viewAny', Hotel::class);
+
         $query = Hotel::query();
 
-        if ($request->has('city')) {
-            $query->where('city', 'like', '%' . $request->input('city') . '%');
+        if ($request->has('city_id')) {
+            $query->where('city_id', $request->city_id);
         }
 
-        if ($request->has('min_price')) {
-        $query->where('price_per_night', '>=', $request->input('min_price'));
-    }
+        if ($request->has(['min_price', 'max_price'])) {
+            $query->whereBetween('price_per_night', [$request->min_price, $request->max_price]);
+        }
+
+        if ($request->has('min_rating')) {
+            $query->where('rating', '>=', $request->min_rating);
+        }
+
+        if ($request->has('amenities')) {
+            foreach ($request->input('amenities') as $amenity) {
+                $query->whereJsonContains('amenities', $amenity);
+            }
+        }
 
         if ($request->has('sort_by')) {
             $query->orderBy($request->sort_by, $request->input('sort_order', 'asc'));
@@ -33,33 +43,32 @@ class HotelController extends Controller
 
         $hotels = $query->paginate(10);
 
-        $hotels->getCollection()->transform(function ($hotel) {
-            $hotel->image = url($hotel->image);
-            return $hotel;
-        });
-
-        return response()->json($hotels, 200);
+        return response()->json([
+            'status' => 'success',
+            'data' => $hotels,
+        ], 200);
     }
 
     public function show($id)
     {
-        $hotel = Hotel::find($id);
+        $hotel = Hotel::findOrFail($id);
+        $this->authorize('view', $hotel);
 
-    if ($hotel) {
-        $hotel->image = url($hotel->image);
-        return response()->json($hotel, 200);
-    } else {
-        return response()->json(['message' => 'Hotel not found'], 404);
-    }
+        return response()->json(['status' => 'success', 'data' => $hotel], 200);
     }
 
     public function store(Request $request)
     {
+        $this->authorize('create', Hotel::class);
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'city' => 'required|string|max:255',
+            'city_id' => 'required|exists:locations,location_id',
             'price_per_night' => 'required|numeric|min:0',
+            'rating' => 'nullable|numeric|between:1,5',
+            'amenities' => 'nullable|array',
             'availability' => 'required|boolean',
+            'rooms_available' => 'required|integer|min:0',
             'image' => 'nullable|image|max:2048',
         ]);
 
@@ -69,21 +78,22 @@ class HotelController extends Controller
 
         $hotel = Hotel::create($validated);
 
-        return response()->json($hotel, 201);
+        return response()->json(['status' => 'success', 'data' => $hotel], 201);
     }
 
     public function update(Request $request, $id)
     {
-        $hotel = Hotel::find($id);
-        if (!$hotel) {
-            return response()->json(['message' => 'Hotel not found'], 404);
-        }
+        $hotel = Hotel::findOrFail($id);
+        $this->authorize('update', $hotel);
 
         $validated = $request->validate([
             'name' => 'nullable|string|max:255',
-            'city' => 'nullable|string|max:255',
+            'city_id' => 'nullable|exists:locations,location_id',
             'price_per_night' => 'nullable|numeric|min:0',
+            'rating' => 'nullable|numeric|between:1,5',
+            'amenities' => 'nullable|array',
             'availability' => 'nullable|boolean',
+            'rooms_available' => 'nullable|integer|min:0',
             'image' => 'nullable|image|max:2048',
         ]);
 
@@ -97,15 +107,13 @@ class HotelController extends Controller
 
         $hotel->update($validated);
 
-        return response()->json($hotel, 200);
+        return response()->json(['status' => 'success', 'data' => $hotel], 200);
     }
 
     public function destroy($id)
     {
-        $hotel = Hotel::find($id);
-        if (!$hotel) {
-            return response()->json(['message' => 'Hotel not found'], 404);
-        }
+        $hotel = Hotel::findOrFail($id);
+        $this->authorize('delete', $hotel);
 
         if ($hotel->image) {
             Storage::disk('public')->delete($hotel->image);
@@ -113,36 +121,17 @@ class HotelController extends Controller
 
         $hotel->delete();
 
-        return response()->json(['message' => 'Hotel deleted'], 200);
+        return response()->json(['status' => 'success', 'message' => 'Hotel deleted'], 200);
     }
 
     public function toggleAvailability($id)
     {
-        $hotel = Hotel::find($id);
-        if (!$hotel) {
-            return response()->json(['message' => 'Hotel not found'], 404);
-        }
+        $hotel = Hotel::findOrFail($id);
+        $this->authorize('update', $hotel);
 
         $hotel->availability = !$hotel->availability;
         $hotel->save();
 
-        return response()->json(['message' => 'Hotel availability toggled', 'hotel' => $hotel], 200);
-    }
-
-    public function search(Request $request)
-    {
-        $query = Hotel::query();
-
-        if ($request->has('city')) {
-            $query->where('city', 'like', '%' . $request->input('city') . '%');
-        }
-
-        if ($request->has(['min_price', 'max_price'])) {
-            $query->whereBetween('price_per_night', [$request->min_price, $request->max_price]);
-        }
-
-        $hotels = $query->paginate(10);
-
-        return response()->json($hotels, 200);
+        return response()->json(['status' => 'success', 'message' => 'Hotel availability toggled', 'hotel' => $hotel], 200);
     }
 }

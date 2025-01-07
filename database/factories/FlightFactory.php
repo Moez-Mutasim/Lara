@@ -19,13 +19,12 @@ class FlightFactory extends Factory
             $destinationLocation = Location::factory()->create();
         }
 
-        $departureTime = $this->faker->dateTimeBetween('-1 year', 'now');
+        $departureTime = $this->faker->dateTimeBetween('now', '+1 year');
         $arrivalTime = $this->faker->dateTimeBetween($departureTime, '+12 hours');
-
         $duration = $arrivalTime->diff($departureTime)->format('%h hours %i minutes');
 
         return [
-            'airline_name' => $this->faker->randomElement(['Delta Airlines', 'American Airlines', 'United Airlines', 'Emirates', 'Lufthansa']),
+            'airline_name' => $this->faker->randomElement(['Qatar Airlines', 'American Airlines', 'Itihad Airlines', 'Emirates Airlines', 'Lufthansa Airlines', 'Saudi Airlines', 'Gulf Airlines']),
             'departure_id' => $departureLocation->location_id,
             'destination_id' => $destinationLocation->location_id,
             'departure_time' => $departureTime,

@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Models\Review;
 use Illuminate\Http\Request;
 
@@ -10,19 +9,17 @@ class ReviewController extends Controller
 {
     public function __construct()
     {
-       // $this->middleware('auth:api');
+        $this->middleware('auth:sanctum')->except(['index', 'show']);
     }
 
     public function index(Request $request)
     {
+        $this->authorize('viewAny', Review::class);
+
         $query = Review::query();
 
         if ($request->has('rating')) {
-            $query->where('rating', $request->input('rating'));
-        }
-
-        if ($request->has('user_id')) {
-            $query->where('user_id', $request->input('user_id'));
+            $query->where('rating', '>=', $request->input('rating'));
         }
 
         if ($request->has('type')) {
@@ -32,73 +29,78 @@ class ReviewController extends Controller
             }
         }
 
-        $reviews = $query->paginate(10);
+        if ($request->has('user_id')) {
+            $query->where('user_id', $request->input('user_id'));
+        }
 
-        return response()->json($reviews, 200);
+        if ($request->has('is_verified')) {
+            $query->where('is_verified', $request->input('is_verified'));
+        }
+
+        $reviews = $query->orderBy('created_at', 'desc')->paginate(10);
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $reviews,
+        ], 200);
     }
 
     public function show($id)
     {
-        $review = Review::find($id);
+        $review = Review::findOrFail($id);
+        $this->authorize('view', $review);
 
-        return $review
-            ? response()->json($review, 200)
-            : response()->json(['message' => 'Review not found'], 404);
+        return response()->json(['status' => 'success', 'data' => $review], 200);
     }
 
     public function store(Request $request)
     {
-        try {
-            $validated = $request->validate([
-                'user_id' => 'required|exists:users,user_id',
-                'flight_id' => 'nullable|exists:flights,flight_id',
-                'hotel_id' => 'nullable|exists:hotels,hotel_id',
-                'car_id' => 'nullable|exists:cars,car_id',
-                'rating' => 'required|numeric|min:1|max:5',
-                'comment' => 'nullable|string|max:1000',
-            ]);
+        $this->authorize('create', Review::class);
 
-            $review = Review::create($validated);
+        $validated = $request->validate([
+            'user_id' => 'required|exists:users,user_id',
+            'flight_id' => 'nullable|exists:flights,flight_id',
+            'hotel_id' => 'nullable|exists:hotels,hotel_id',
+            'car_id' => 'nullable|exists:cars,car_id',
+            'rating' => 'required|numeric|min:1|max:5',
+            'comment' => 'nullable|string|max:1000',
+        ]);
 
-            return response()->json($review, 201);
-        } catch (\Exception $e) {
-            return response()->json(['message' => 'An error occurred while creating the review.'], 500);
-        }
+        $review = Review::create($validated);
+
+        return response()->json(['status' => 'success', 'data' => $review], 201);
     }
 
     public function update(Request $request, $id)
     {
-        $review = Review::find($id);
-
-        if (!$review) {
-            return response()->json(['message' => 'Review not found'], 404);
-        }
+        $review = Review::findOrFail($id);
+        $this->authorize('update', $review);
 
         $validated = $request->validate([
             'rating' => 'nullable|numeric|min:1|max:5',
             'comment' => 'nullable|string|max:1000',
+            'is_verified' => 'nullable|boolean',
         ]);
 
         $review->update($validated);
 
-        return response()->json($review, 200);
+        return response()->json(['status' => 'success', 'data' => $review], 200);
     }
 
     public function destroy($id)
     {
-        $review = Review::find($id);
-
-        if (!$review) {
-            return response()->json(['message' => 'Review not found'], 404);
-        }
+        $review = Review::findOrFail($id);
+        $this->authorize('delete', $review);
 
         $review->delete();
 
-        return response()->json(['message' => 'Review deleted'], 200);
+        return response()->json(['status' => 'success', 'message' => 'Review deleted'], 200);
     }
 
     public function search(Request $request)
     {
+        $this->authorize('viewAny', Review::class);
+
         $query = Review::query();
 
         if ($request->has('comment')) {
@@ -111,6 +113,6 @@ class ReviewController extends Controller
 
         $reviews = $query->paginate(10);
 
-        return response()->json($reviews, 200);
+        return response()->json(['status' => 'success', 'data' => $reviews], 200);
     }
 }

@@ -6,40 +6,47 @@ use Illuminate\Http\Request;
 
 class HomeController extends Controller
 {
-    /**
-     * Constructor to apply middleware.
-     */
     public function __construct()
     {
-        $this->middleware('auth');
+        $this->middleware('auth')->except(['index']);
     }
 
-    /**
-     * Display the home page.
-     */
     public function index(Request $request)
     {
         try {
-            // Log user's access
-            \Log::info('Home page accessed by user', ['user_id' => auth()->id()]);
+            $user = auth()->user();
+            $isGuest = is_null($user);
 
             $data = [
-                'title' => 'Welcome to the Home Page',
-                'user' => auth()->user(),
+                'title' => 'Welcome to Bookins',
+                'user' => $user,
+                'is_guest' => $isGuest,
+                'features' => $this->getAvailableFeatures($isGuest),
             ];
 
-            // If the request is AJAX, return JSON response
             if ($request->ajax()) {
-                return response()->json(['message' => 'Welcome to the Home Page', 'data' => $data]);
+                return $this->jsonResponse($data, 'Welcome to Bookins');
             }
 
-            // Otherwise, return the home view
             return view('home', $data);
-        } catch (\Exception $e) {
-            \Log::error('Error loading home view', ['error' => $e->getMessage()]);
-
-            // Return an error view or response
-            return response()->view('errors.500', [], 500);
+        } catch (\Throwable $e) {
+            return $this->handleException($e, 'Failed to load the home page');
         }
+    }
+
+    private function getAvailableFeatures($isGuest)
+    {
+        $features = [
+            'flights' => route('flights.index'),
+            'hotels' => route('hotels.index'),
+            'cars' => route('cars.index'),
+        ];
+
+        if (!$isGuest) {
+            $features['profile'] = route('profile.index');
+            $features['bookings'] = route('bookings.index');
+        }
+
+        return $features;
     }
 }

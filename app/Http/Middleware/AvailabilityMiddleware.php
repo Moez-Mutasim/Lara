@@ -9,7 +9,9 @@ class AvailabilityMiddleware
 {
     public function handle(Request $request, Closure $next)
     {
-        if (!$request->route('resource')->availability) {
+        $resource = $request->route('resource');
+
+        if (!$resource || !$resource->availability) {
             return response()->json(['message' => 'Resource unavailable'], 400);
         }
 

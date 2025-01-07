@@ -16,13 +16,19 @@ class Payment extends Model
 
     protected $fillable = [
         'booking_id',
+        'payment_reference',
         'amount',
         'payment_method',
         'payment_status',
+        'transaction_fee',
+        'currency',
+        'paid_at',
     ];
 
     protected $casts = [
         'amount' => 'decimal:2',
+        'transaction_fee' => 'decimal:2',
+        'paid_at' => 'datetime',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
@@ -34,12 +40,14 @@ class Payment extends Model
     public function scopeCompleted($query){return $query->where('payment_status', 'completed');}
     public function scopePending($query){return $query->where('payment_status', 'pending');}
     public function scopeFailed($query){return $query->where('payment_status', 'failed');}
+    public function scopeRefunded($query){return $query->where('payment_status', 'refunded');}
 
 
-    public function getFormattedAmountAttribute(){return '$' . number_format($this->amount, 2);}
+    public function getFormattedAmountAttribute(){return $this->currency . ' ' . number_format($this->amount, 2);}
     public function setAmountAttribute($value){$this->attributes['amount'] = round($value, 2);}
 
 
-    public function markAsCompleted(){$this->update(['payment_status' => 'completed']);}
+    public function markAsCompleted(){$this->update(['payment_status' => 'completed', 'paid_at' => now()]);}
     public function markAsFailed(){$this->update(['payment_status' => 'failed']);}
+    public function markAsRefunded(){$this->update(['payment_status' => 'refunded']);}
 }

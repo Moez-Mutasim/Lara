@@ -21,7 +21,11 @@ class UsersTableSeeder extends Seeder
             $this->command->getOutput()->progressStart($count);
 
             \DB::transaction(function () use ($count) {
-                User::factory()->count($count)->create();
+                // Create agents
+                User::factory()->agent()->count($count - 3)->create();
+
+                // Create admins
+                User::factory()->admin()->count(3)->create();
             });
 
             $this->command->getOutput()->progressFinish();
