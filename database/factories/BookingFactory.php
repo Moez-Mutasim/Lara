@@ -15,47 +15,68 @@ class BookingFactory extends Factory
 
     public function definition()
     {
-        $flight = $this->faker->boolean(80) ? Flight::factory() : null;
-        $hotel = $this->faker->boolean(70) ? Hotel::factory() : null;
-        $car = $this->faker->boolean(50) ? Car::factory() : null;
+        $flight_id = Flight::inRandomOrder()->value('flight_id');
+        $hotel_id = Hotel::inRandomOrder()->value('hotel_id');
+        $car_id = Car::inRandomOrder()->value('car_id');
+
+        $hasFlight = $this->faker->boolean(80);
+        $hasHotel = $this->faker->boolean(70);
+        $hasCar = $this->faker->boolean(50);
 
         return [
-            'user_id' => User::factory(),
-            'flight_id' => $flight,
-            'hotel_id' => $hotel,
-            'car_id' => $car,
-            'booking_date' => $this->faker->dateTimeBetween('-1 year', 'now'),
-            'total_price' => function () use ($flight, $hotel, $car) {
-                return ($flight ? $flight->price : 0) +
-                       ($hotel ? $hotel->price_per_night : 0) +
-                       ($car ? $car->rental_price : 0);
+            'user_id' => User::inRandomOrder()->value('user_id') ?? User::factory(),
+            'flight_id' => $hasFlight ? $flight_id : null,
+            'hotel_id' => $hasHotel ? $hotel_id : null,
+            'car_id' => $hasCar ? $car_id : null,
+            'booking_date' => $this->faker->dateTimeBetween('now', '+1 year'),
+            'total_price' => function () use ($hasFlight, $flight_id, $hasHotel, $hotel_id, $hasCar, $car_id) {
+                return ($hasFlight && $flight_id ? Flight::find($flight_id)->price : 0) +
+                       ($hasHotel && $hotel_id ? Hotel::find($hotel_id)->price_per_night : 0) +
+                       ($hasCar && $car_id ? Car::find($car_id)->rental_price : 0);
             },
-            'status' => $this->faker->randomElement(['pending', 'confirmed', 'canceled']),
+            'status' => $this->faker->randomElement(['pending', 'active', 'canceled']),
         ];
     }
 
-    public function confirmed()
+   
+    public function active()
     {
-        return $this->state(fn () => ['status' => 'confirmed']);
+        return $this->state(fn () => ['status' => 'active']);
     }
 
+   
     public function canceled()
     {
         return $this->state(fn () => ['status' => 'canceled']);
     }
 
+   
     public function withFlightOnly()
     {
-        return $this->state(fn () => ['flight_id' => Flight::factory(), 'hotel_id' => null, 'car_id' => null]);
+        return $this->state(fn () => [
+            'flight_id' => Flight::inRandomOrder()->value('flight_id'),
+            'hotel_id' => null,
+            'car_id' => null,
+        ]);
     }
 
+   
     public function withHotelOnly()
     {
-        return $this->state(fn () => ['hotel_id' => Hotel::factory(), 'flight_id' => null, 'car_id' => null]);
+        return $this->state(fn () => [
+            'hotel_id' => Hotel::inRandomOrder()->value('hotel_id'),
+            'flight_id' => null,
+            'car_id' => null,
+        ]);
     }
 
+   
     public function withCarOnly()
     {
-        return $this->state(fn () => ['car_id' => Car::factory(), 'flight_id' => null, 'hotel_id' => null]);
+        return $this->state(fn () => [
+            'car_id' => Car::inRandomOrder()->value('car_id'),
+            'flight_id' => null,
+            'hotel_id' => null,
+        ]);
     }
 }

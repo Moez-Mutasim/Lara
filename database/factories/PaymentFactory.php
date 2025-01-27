@@ -14,9 +14,11 @@ class PaymentFactory extends Factory
     {
         $amount = $this->faker->randomFloat(2, 50, 1000);
         $transactionFee = $this->faker->optional(0.7)->randomFloat(2, 1, 50);
+        
+        $booking = Booking::inRandomOrder()->first() ?? Booking::factory()->create();
 
         return [
-            'booking_id' => Booking::factory(),
+            'booking_id' => $booking->booking_id,
             'payment_reference' => $this->faker->regexify('[A-Z0-9]{10}'),
             'amount' => $amount,
             'transaction_fee' => $transactionFee,

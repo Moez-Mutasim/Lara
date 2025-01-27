@@ -4,11 +4,20 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\Favorite;
+use App\Models\User;
 
-class FavoriteSeeder extends Seeder
+
+class FavoritesTableSeeder extends Seeder
 {
     public function run()
     {
-        Favorite::factory(10)->create();
+        if (User::count() === 0) {
+            $this->command->warn('No users found. Creating some users first...');
+            User::factory()->count(10)->create();
+        }
+        $favoriteCount = config('seeder.favorite_count', 50);
+        $this->command->info("Seeding {$favoriteCount} favorites...");
+        Favorite::factory()->count($favoriteCount)->create();
+        $this->command->info("Successfully seeded {$favoriteCount} favorites.");
     }
 }

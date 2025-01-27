@@ -20,7 +20,7 @@ class UserFactory extends Factory
             'gender' => $this->faker->randomElement(['male', 'female']),
             'date_of_birth' => $this->faker->dateTimeBetween('-60 years', '-18 years')->format('Y-m-d'),
             'profile_picture' => $this->faker->optional()->imageUrl(150, 150, 'people', true, 'User'),
-            'role' => $this->faker->randomElement(['agent', 'admin']),
+            'role' => $this->faker->randomElement(['customer', 'admin']),
             'email_verified' => $this->faker->boolean(80),
             'phone_verified' => $this->faker->boolean(70),
             'country_id' => null,
@@ -31,8 +31,8 @@ class UserFactory extends Factory
     public function admin()
     {return $this->state(fn () => ['role' => 'admin']);}
 
-    public function agent()
-    {return $this->state(fn () => ['role' => 'agent']);}
+    public function customer()
+    {return $this->state(fn () => ['role' => 'customer']);}
 
     private function generateImage()
     {

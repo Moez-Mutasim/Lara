@@ -7,27 +7,40 @@ use App\Models\User;
 
 class PaymentPolicy
 {
-    public function viewAny(User $user)
+    
+    public function viewAny(?User $user)
     {
-        return $user->isAdmin(); // Only admins can view payments
+        return $user->isAdmin();
     }
 
+    
     public function view(User $user, Payment $payment)
     {
-        return $user->isAdmin() || $user->id === $payment->booking->user_id;
+        return $user->isAdmin() || 
+               ($payment->booking && $user->user_id === $payment->booking->user_id);
     }
 
-    public function create(User $user)
+    
+    public function create(?User $user)
     {
-        return $user->isAdmin();
+        return $user->isAdmin() || $user->isCustomer();
     }
 
+   
     public function update(User $user, Payment $payment)
     {
+        return $user->isAdmin() || 
+               ($user->user_id === $payment->booking->user_id && $payment->payment_status === 'pending');
+    }
+
+
+    public function delete(User $user, Payment $payment)
+    {
         return $user->isAdmin();
     }
 
-    public function delete(User $user, Payment $payment)
+   
+    public function markAsCompleted(User $user, Payment $payment)
     {
         return $user->isAdmin();
     }

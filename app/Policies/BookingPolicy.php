@@ -7,28 +7,47 @@ use App\Models\User;
 
 class BookingPolicy
 {
+    
     public function viewAny(User $user)
     {
-        return true; // Allow all authenticated users to view bookings
+        return $user->isAdmin() || $user->isCustomer();
     }
 
+   
     public function view(User $user, Booking $booking)
     {
-        return $user->isAdmin() || $user->id === $booking->user_id;
+        return $user->isAdmin() || $user->user_id === $booking->user_id;
     }
 
+   
     public function create(User $user)
     {
-        return true; // Any user can create a booking
+        return $user->isAdmin() || $user->isCustomer();
     }
 
+   
     public function update(User $user, Booking $booking)
     {
-        return $user->id === $booking->user_id || $user->isAdmin();
+        return $user->user_id === $booking->user_id || $user->isAdmin();
     }
 
+ 
     public function delete(User $user, Booking $booking)
     {
-        return $user->isAdmin();
+        return $user->user_id === $booking->user_id || $user->isAdmin();
+    }
+
+  
+    public function cancel(User $user, Booking $booking)
+    {
+        return $user->user_id === $booking->user_id || $user->isAdmin();
+    }
+
+
+    public function before(User $user, $ability)
+    {
+        if ($user->isAdmin()) {
+            return true;
+        }
     }
 }

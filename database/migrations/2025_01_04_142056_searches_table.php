@@ -9,11 +9,13 @@ class SearchesTable extends Migration
     public function up()
     {
         Schema::create('searches', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->bigIncrements('search_id');
+            $table->unsignedBigInteger('user_id');
             $table->string('search_type');
             $table->json('search_details');
             $table->timestamps();
+
+            $table->foreign('user_id')->references('user_id')->on('users')->onDelete('cascade');
         });
     }
 

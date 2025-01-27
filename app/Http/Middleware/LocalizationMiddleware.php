@@ -1,5 +1,6 @@
 <?php
 
+
 namespace App\Http\Middleware;
 
 use Closure;
@@ -9,8 +10,10 @@ class LocalizationMiddleware
 {
     public function handle($request, Closure $next)
     {
-        $locale = $request->header('Accept-Language') ?: $request->query('lang', 'en');
-        App::setLocale($locale);
+        $locale = $request->get('lang', config('app.locale'));
+        if (in_array($locale, ['en', 'ar'])) {
+            App::setLocale($locale);
+        }
 
         return $next($request);
     }

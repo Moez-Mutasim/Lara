@@ -13,9 +13,9 @@ class FavoriteFactory extends Factory
     public function definition()
     {
         return [
-            'user_id' => User::factory(),
+            'user_id' => User::inRandomOrder()->first()->user_id ?? User::factory(),
             'item_type' => $this->faker->randomElement(['flight', 'hotel', 'car']),
-            'item_id' => $this->faker->randomNumber(5), // Random item ID
+            'item_id' => $this->faker->numberBetween(1, 50),
             'created_at' => now(),
             'updated_at' => now(),
         ];

@@ -7,14 +7,14 @@ use App\Models\User;
 
 class FlightPolicy
 {
-    public function viewAny(User $user)
+    public function viewAny(?User $user)
     {
-        return true; // Allow all authenticated users to view flights
+        return true;
     }
 
-    public function view(User $user, Flight $flight)
+    public function view(?User $user, Flight $flight)
     {
-        return true; // All users can view flight details
+        return true;
     }
 
     public function create(User $user)

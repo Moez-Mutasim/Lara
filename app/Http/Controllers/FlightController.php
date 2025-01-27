@@ -5,12 +5,13 @@ namespace App\Http\Controllers;
 use App\Models\Flight;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class FlightController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth:sanctum')->except(['index', 'show']);
+        $this->middleware('auth:sanctum')->except(['index', 'show', 'available']);
     }
 
     public function index(Request $request)
@@ -19,23 +20,35 @@ class FlightController extends Controller
 
         $query = Flight::query();
 
-        if ($request->has('departure_id')) {
-            $query->where('departure_id', $request->departure_id);
-        }
-        if ($request->has('destination_id')) {
-            $query->where('destination_id', $request->destination_id);
-        }
-
-        if ($request->has('class')) {
-            $query->where('class', $request->class);
+        if ($request->has('airline_name')) {
+            $query->where('airline_name', 'like', '%' . $request->input('airline_name') . '%');
         }
 
         if ($request->has(['min_price', 'max_price'])) {
-            $query->whereBetween('price', [$request->min_price, $request->max_price]);
+            $query->whereBetween('price', [
+                $request->input('min_price'),
+                $request->input('max_price'),
+            ]);
+        }
+
+        if ($request->has('class')) {
+            $query->where('class', $request->input('class'));
+        }
+
+        if ($request->has('departure_id')) {
+            $query->where('departure_id', $request->input('departure_id'));
+        }
+
+        if ($request->has('destination_id')) {
+            $query->where('destination_id', $request->input('destination_id'));
+        }
+
+        if ($request->has('is_available')) {
+            $query->where('is_available', $request->input('is_available'));
         }
 
         if ($request->has('sort_by')) {
-            $query->orderBy($request->sort_by, $request->input('sort_order', 'asc'));
+            $query->orderBy($request->input('sort_by'), $request->input('sort_order', 'asc'));
         }
 
         $flights = $query->paginate(10);
@@ -64,25 +77,27 @@ class FlightController extends Controller
         $this->authorize('create', Flight::class);
 
         $validated = $request->validate([
-            'airline_name' => 'required|string|max:255',
-            'departure_id' => 'required|exists:locations,location_id',
+            'departure_id'   => 'required|exists:locations,location_id|different:destination_id',
             'destination_id' => 'required|exists:locations,location_id',
+            'airline_name'   => 'required|string|max:255',
             'departure_time' => 'required|date',
-            'arrival_time' => 'required|date|after:departure_time',
-            'price' => 'required|numeric|min:0',
-            'class' => 'required|in:Economy,Business,First',
-            'seats_available' => 'required|integer|min:0',
-            'is_available' => 'nullable|boolean',
-            'image' => 'nullable|image|max:2048',
+            'arrival_time'   => 'required|date|after:departure_time',
+            'price'          => 'required|numeric|min:0',
+            'class'          => 'required|in:Economy,Business,First',
+            'seats_available'=> 'required|integer|min:0',
+            'is_available'   => 'nullable|boolean',
+            'flight_image'   => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
-        if ($request->hasFile('image')) {
-            $validated['image'] = $request->file('image')->store('images/flights', 'public');
+        if ($request->hasFile('flight_image')) {
+            $validated['flight_image'] = $request->file('flight_image')->store('images/flights', 'public');
         }
 
         $flight = Flight::create($validated);
 
-        return response()->json(['status' => 'success', 'data' => $flight], 201);
+        Log::info("Flight {$flight->flight_id} created by User: " . auth()->user()->name);
+
+        return response()->json(['status' => 'success', 'message' => 'Flight Created Successfully', 'data' => $flight], 201);
     }
 
     public function update(Request $request, $id)
@@ -91,28 +106,30 @@ class FlightController extends Controller
         $this->authorize('update', $flight);
 
         $validated = $request->validate([
-            'airline_name' => 'nullable|string|max:255',
-            'departure_id' => 'nullable|exists:locations,location_id',
-            'destination_id' => 'nullable|exists:locations,location_id',
-            'departure_time' => 'nullable|date',
-            'arrival_time' => 'nullable|date|after:departure_time',
-            'price' => 'nullable|numeric|min:0',
-            'class' => 'nullable|in:Economy,Business,First',
-            'seats_available' => 'nullable|integer|min:0',
-            'is_available' => 'nullable|boolean',
-            'image' => 'nullable|image|max:2048',
+            'departure_id'   => 'sometimes|required|exists:locations,location_id|different:destination_id',
+            'destination_id' => 'sometimes|required|exists:locations,location_id',
+            'airline_name'   => 'sometimes|required|string|max:255',
+            'departure_time' => 'sometimes|required|date',
+            'arrival_time'   => 'sometimes|required|date|after:departure_time',
+            'price'          => 'sometimes|required|numeric|min:0',
+            'class'          => 'sometimes|required|in:Economy,Business,First',
+            'seats_available'=> 'sometimes|required|integer|min:0',
+            'is_available'   => 'sometimes|nullable|boolean',
+            'flight_image'   => 'sometimes|nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
-        if ($request->hasFile('image')) {
-            if ($flight->image) {
-                Storage::disk('public')->delete($flight->image);
+        if ($request->hasFile('flight_image')) {
+            if ($flight->flight_image) {
+                Storage::disk('public')->delete($flight->flight_image);
             }
-            $validated['image'] = $request->file('image')->store('images/flights', 'public');
+            $validated['flight_image'] = $request->file('flight_image')->store('images/flights', 'public');
         }
 
         $flight->update($validated);
 
-        return response()->json(['status' => 'success', 'data' => $flight], 200);
+        Log::info("Flight {$flight->flight_id} updated by User: " . auth()->user()->name);
+
+        return response()->json(['status' => 'success', 'message' => 'Flight Updated Successfully', 'data' => $flight], 200);
     }
 
     public function destroy($id)
@@ -120,13 +137,15 @@ class FlightController extends Controller
         $flight = Flight::findOrFail($id);
         $this->authorize('delete', $flight);
 
-        if ($flight->image) {
-            Storage::disk('public')->delete($flight->image);
+        if ($flight->flight_image) {
+            Storage::disk('public')->delete($flight->flight_image);
         }
 
         $flight->delete();
 
-        return response()->json(['status' => 'success', 'message' => 'Flight deleted'], 200);
+        Log::info("Flight {$flight->flight_id} deleted by User: " . auth()->user()->name);
+
+        return response()->json(['status' => 'success', 'message' => 'Flight Deleted Successfully'], 200);
     }
 
     public function toggleAvailability($id)
@@ -137,6 +156,17 @@ class FlightController extends Controller
         $flight->is_available = !$flight->is_available;
         $flight->save();
 
-        return response()->json(['status' => 'success', 'message' => 'Flight availability toggled', 'flight' => $flight], 200);
+        Log::info("Flight {$flight->flight_id} availability toggled by User: " . auth()->user()->name);
+
+        return response()->json(['status' => 'success', 'message' => 'Flight Availability Toggled Successfully', 'data' => $flight], 200);
+    }
+
+    public function available()
+    {
+        $this->authorize('viewAny', Flight::class);
+
+        $flights = Flight::where('is_available', true)->paginate(10);
+
+        return response()->json(['status' => 'success', 'data' => $flights], 200);
     }
 }

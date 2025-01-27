@@ -7,14 +7,14 @@ use App\Models\User;
 
 class HotelPolicy
 {
-    public function viewAny(User $user)
+    public function viewAny(?User $user)
     {
-        return true; // Allow all users to view hotels
+        return true;
     }
 
-    public function view(User $user, Hotel $hotel)
+    public function view(?User $user, Hotel $hotel)
     {
-        return true; // All users can view hotel details
+        return true;
     }
 
     public function create(User $user)

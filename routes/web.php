@@ -12,7 +12,7 @@ use App\Http\Controllers\{
     NotificationController,
     ExploreController
 };
-
+/*
 // Home
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
@@ -53,7 +53,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Notifications
     Route::prefix('notifications')->group(function () {
-        Route::get('/', [NotificationController::class, 'index'])->name('notifications.index');
+      //  Route::get('/', [NotificationController::class, 'index'])->name('notifications.index');
         Route::put('/{id}', [NotificationController::class, 'markAsRead'])->name('notifications.markRead');
     });
 
@@ -77,3 +77,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
 
 // Additional Authenticated Home Route
 Route::get('/home', [HomeController::class, 'index'])->middleware('auth')->name('home');
+
+Auth::routes();
+
+Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+*/

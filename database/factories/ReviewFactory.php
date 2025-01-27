@@ -16,7 +16,7 @@ class ReviewFactory extends Factory
     public function definition()
     {
         return [
-            'user_id' => User::factory(),
+            'user_id' => User::inRandomOrder()->value('user_id') ?? User::factory(),
             'flight_id' => null,
             'car_id' => null,
             'hotel_id' => null,
@@ -29,7 +29,7 @@ class ReviewFactory extends Factory
                 'The staff was very friendly and helpful.',
                 'Would not recommend, had a bad experience.',
             ]),
-            'is_verified' => $this->faker->boolean(70), // 70% chance the review is verified
+            'is_verified' => $this->faker->boolean(70),
         ];
     }
 
@@ -40,23 +40,35 @@ class ReviewFactory extends Factory
 
     public function forFlight(Flight $flight)
     {
-        return $this->state(fn () => ['flight_id' => $flight->flight_id, 'car_id' => null, 'hotel_id' => null]);
+        return $this->state(fn () => [
+            'flight_id' => $flight->flight_id,
+            'car_id' => null,
+            'hotel_id' => null
+        ]);
     }
 
     public function forCar(Car $car)
     {
-        return $this->state(fn () => ['car_id' => $car->car_id, 'flight_id' => null, 'hotel_id' => null]);
+        return $this->state(fn () => [
+            'car_id' => $car->car_id,
+            'flight_id' => null,
+            'hotel_id' => null
+        ]);
     }
 
     public function forHotel(Hotel $hotel)
     {
-        return $this->state(fn () => ['hotel_id' => $hotel->hotel_id, 'flight_id' => null, 'car_id' => null]);
+        return $this->state(fn () => [
+            'hotel_id' => $hotel->hotel_id,
+            'flight_id' => null,
+            'car_id' => null
+        ]);
     }
 
     public function forFlightOnly()
     {
         return $this->state(fn () => [
-            'flight_id' => Flight::factory(),
+            'flight_id' => Flight::inRandomOrder()->value('flight_id') ?? Flight::factory(),
             'car_id' => null,
             'hotel_id' => null,
         ]);
@@ -65,7 +77,7 @@ class ReviewFactory extends Factory
     public function forHotelOnly()
     {
         return $this->state(fn () => [
-            'hotel_id' => Hotel::factory(),
+            'hotel_id' => Hotel::inRandomOrder()->value('hotel_id') ?? Hotel::factory(),
             'flight_id' => null,
             'car_id' => null,
         ]);
@@ -74,7 +86,7 @@ class ReviewFactory extends Factory
     public function forCarOnly()
     {
         return $this->state(fn () => [
-            'car_id' => Car::factory(),
+            'car_id' => Car::inRandomOrder()->value('car_id') ?? Car::factory(),
             'flight_id' => null,
             'hotel_id' => null,
         ]);

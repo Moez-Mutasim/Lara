@@ -19,7 +19,8 @@ class FlightsTable extends Migration
             $table->integer('seats_available')->default(0);
             $table->enum('class', ['Economy', 'Business', 'First'])->default('Economy');
             $table->decimal('price', 10, 2);
-            $table->string('image')->nullable();
+            $table->boolean('is_available')->default(true);
+            $table->string('flight_image')->nullable();
             $table->timestamps();
 
             

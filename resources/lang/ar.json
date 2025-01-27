@@ -1,0 +1,21 @@
+{
+    "welcome": "أهلا وسهلا",
+    "login": "تسجيل الدخول",
+    "register": "إنشاء حساب",
+    "logout": "تسجيل الخروج",
+    "home": "الرئيسية",
+    "profile": "الملف الشخصي",
+    "settings": "الإعدادات",
+    "notifications": "الإشعارات",
+    "bookings": "الحجوزات",
+    "search": "بحث",
+    "flight": "الرحلة",
+    "hotel": "الفندق",
+    "car": "السيارة",
+    "language": "اللغة",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "error_occurred": "حدث خطأ",
+    "success": "نجاح",
+    "loading": "جار التحميل"
+}

@@ -4,16 +4,20 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateFavoritesTable extends Migration
+class FavoritesTable extends Migration
 {
     public function up()
     {
         Schema::create('favorites', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->bigIncrements('favorite_id');
+            $table->unsignedBigInteger('user_id');
             $table->string('item_type');
             $table->unsignedBigInteger('item_id');
             $table->timestamps();
+            $table->softDeletes();
+
+            $table->foreign('user_id')->references('user_id')->on('users')->onDelete('cascade');
+
         });
     }
 

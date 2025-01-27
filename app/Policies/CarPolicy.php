@@ -7,14 +7,14 @@ use App\Models\User;
 
 class CarPolicy
 {
-    public function viewAny(User $user)
+    public function viewAny(?User $user)
     {
-        return true; // Allow all users to view cars
+        return true;
     }
 
-    public function view(User $user, Car $car)
+    public function view(?User $user, Car $car)
     {
-        return true; // All users can view car details
+        return true;
     }
 
     public function create(User $user)

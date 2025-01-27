@@ -1,0 +1,21 @@
+{
+    "welcome": "Welcome",
+    "login": "Login",
+    "register": "Register",
+    "logout": "Logout",
+    "home": "Home",
+    "profile": "Profile",
+    "settings": "Settings",
+    "notifications": "Notifications",
+    "bookings": "Bookings",
+    "search": "Search",
+    "flight": "Flight",
+    "hotel": "Hotel",
+    "car": "Car",
+    "language": "Language",
+    "save": "Save",
+    "cancel": "Cancel",
+    "error_occurred": "An error occurred",
+    "success": "Success",
+    "loading": "Loading"
+}

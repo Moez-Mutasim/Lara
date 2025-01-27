@@ -6,11 +6,8 @@ use Illuminate\Database\Seeder;
 use App\Models\Passport;
 use App\Models\User;
 
-class PassportSeeder extends Seeder
+class PassportsTableSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run()
     {
         if (User::count() === 0) {
@@ -18,6 +15,15 @@ class PassportSeeder extends Seeder
             User::factory()->count(10)->create();
         }
 
-        Passport::factory()->count(20)->create();
+        $passportCount = config('seeder.passports_count', 50);
+
+        $this->command->info("Seeding {$passportCount} passports...");
+
+        try {
+            Passport::factory()->count($passportCount)->create();
+            $this->command->info("Successfully seeded {$passportCount} passports.");
+        } catch (\Exception $e) {
+            $this->command->error("Failed to seed passports: " . $e->getMessage());
+        }
     }
 }

@@ -21,8 +21,8 @@ class DatabaseSeeder extends Seeder
             PaymentsTableSeeder::class,
             ReviewsTableSeeder::class,
             PassportsTableSeeder::class,
-            SearchSeeder::class,
-            FavoriteSeeder::class,
+            SearchesTableSeeder::class,
+            FavoritesTableSeeder::class,
         ];
 
         if ($seedersToRun = $this->command->option('seeders')) {

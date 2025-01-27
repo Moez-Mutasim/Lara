@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateBookingsTable extends Migration
+class BookingsTable extends Migration
 {
     public function up()
     {
@@ -16,7 +16,7 @@ class CreateBookingsTable extends Migration
             $table->unsignedBigInteger('car_id')->nullable();
             $table->decimal('total_price', 15, 2);
             $table->date('booking_date')->nullable();
-            $table->enum('status', ['pending', 'confirmed', 'canceled'])->default('pending');
+            $table->enum('status', ['pending', 'active', 'canceled'])->default('active');
             $table->timestamps();
             $table->softDeletes();
 

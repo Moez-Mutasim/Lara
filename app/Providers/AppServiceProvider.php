@@ -30,6 +30,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+
+        //parent::boot();
+        $this->app['router']->aliasMiddleware('role', \App\Http\Middleware\RoleMiddleware::class);
+
         // Set default string length for MySQL compatibility.
         Schema::defaultStringLength(191);
 

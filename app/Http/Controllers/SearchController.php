@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Http\Request;
 use App\Models\Flight;
 use App\Models\Hotel;
@@ -11,6 +12,8 @@ class SearchController extends Controller
 {
     public function searchFlights(Request $request)
     {
+        Gate::authorize('searchFlights');
+
         $query = Flight::query();
 
         if ($request->has('departure_id')) {
@@ -30,6 +33,8 @@ class SearchController extends Controller
 
     public function searchHotels(Request $request)
     {
+        Gate::authorize('searchHotels');
+
         $query = Hotel::query();
 
         if ($request->has('city_id')) {
@@ -49,6 +54,8 @@ class SearchController extends Controller
 
     public function searchCars(Request $request)
     {
+        Gate::authorize('searchCars');
+
         $query = Car::query();
 
         if ($request->has('brand')) {

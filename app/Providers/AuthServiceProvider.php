@@ -23,9 +23,27 @@ class AuthServiceProvider extends ServiceProvider
     {
         $this->registerPolicies();
 
-        // Example: Custom gate for admin role
-        Gate::define('admin-access', function ($user) {
-            return $user->role === 'admin';
+
+        Gate::define('viewExplore', function ($user) {
+            return $user && $user->isAuthenticated();
+        });
+
+
+        Gate::define('viewHome', function ($user) {
+            Gate::define('viewHome', [HomePolicy::class, 'viewHome']);
+        });
+
+
+        Gate::define('searchFlights', function ($user) {
+            return true;
+        });
+
+        Gate::define('searchHotels', function ($user) {
+            return true;
+        });
+
+        Gate::define('searchCars', function ($user) {
+            return true;
         });
     }
 }

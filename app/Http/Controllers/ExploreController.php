@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use App\Models\Flight;
 use App\Models\Hotel;
 use App\Models\Car;
@@ -11,6 +11,8 @@ class ExploreController extends Controller
 {
     public function index()
     {
+        Gate::authorize('viewExplore');
+
         $flights = Flight::orderBy('rating', 'desc')->take(5)->get();
         $hotels = Hotel::orderBy('rating', 'desc')->take(5)->get();
         $cars = Car::orderBy('rental_price', 'asc')->take(5)->get();

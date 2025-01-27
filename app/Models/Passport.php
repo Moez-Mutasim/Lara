@@ -12,6 +12,9 @@ class Passport extends Model
     use HasFactory, SoftDeletes;
 
     protected $table = 'passports';
+    protected $primaryKey = 'passport_id';
+    public $incrementing = true;
+    protected $keyType = 'int';
 
     protected $fillable = [
         'user_id',

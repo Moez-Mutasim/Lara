@@ -15,7 +15,6 @@ class BookingsTableSeeder extends Seeder
     {
         $count = config('seeder.bookings_count', 50);
 
-        // Ensure dependent models have data
         $this->ensureDependentData();
 
         try {
@@ -36,17 +35,17 @@ class BookingsTableSeeder extends Seeder
 
         if (Flight::count() === 0) {
             $this->command->info("Creating flights...");
-            Flight::factory()->count(5)->create();
+            Flight::factory()->count(10)->create();
         }
 
         if (Hotel::count() === 0) {
             $this->command->info("Creating hotels...");
-            Hotel::factory()->count(5)->create();
+            Hotel::factory()->count(10)->create();
         }
 
         if (Car::count() === 0) {
             $this->command->info("Creating cars...");
-            Car::factory()->count(5)->create();
+            Car::factory()->count(10)->create();
         }
     }
 }

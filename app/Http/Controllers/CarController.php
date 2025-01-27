@@ -5,12 +5,13 @@ namespace App\Http\Controllers;
 use App\Models\Car;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class CarController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth:sanctum')->except(['index', 'show']);
+        $this->middleware('auth:sanctum')->except(['index', 'show', 'available']);
     }
 
     public function index(Request $request)
@@ -59,10 +60,14 @@ class CarController extends Controller
 
     public function show($id)
     {
-        $car = Car::findOrFail($id);
-        $this->authorize('view', $car);
+        try {
+            $car = Car::findOrFail($id);
+            $this->authorize('view', $car);
 
-        return response()->json(['status' => 'success', 'data' => $car], 200);
+            return response()->json(['status' => 'success', 'data' => $car], 200);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json(['status' => 'error', 'message' => 'Car not found'], 404);
+        }
     }
 
     public function store(Request $request)
@@ -74,67 +79,89 @@ class CarController extends Controller
             'brand' => 'required|string|max:255',
             'rental_price' => 'required|numeric|min:0',
             'availability' => 'required|boolean',
-            'image' => 'nullable|image|max:2048',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
         if ($request->hasFile('image')) {
-            $validated['image'] = $request->file('image')->store('images/cars', 'public');
+            $validated['image'] = $this->handleImageUpload($request);
         }
 
         $car = Car::create($validated);
+        Log::info("Car {$car->car_id} created by User: " . auth()->user()->name);
 
-        return response()->json(['status' => 'success', 'data' => $car], 201);
+        return response()->json(['status' => 'success', 'message' => 'Car Created Successfully', 'data' => $car], 201);
     }
 
     public function update(Request $request, $id)
     {
-        $car = Car::findOrFail($id);
-        $this->authorize('update', $car);
+        try {
+            $car = Car::findOrFail($id);
+            $this->authorize('update', $car);
 
-        $validated = $request->validate([
-            'model' => 'nullable|integer',
-            'brand' => 'nullable|string|max:255',
-            'rental_price' => 'nullable|numeric|min:0',
-            'availability' => 'nullable|boolean',
-            'image' => 'nullable|image|max:2048',
-        ]);
+            $validated = $request->validate([
+                'model' => 'nullable|integer',
+                'brand' => 'nullable|string|max:255',
+                'rental_price' => 'nullable|numeric|min:0',
+                'availability' => 'nullable|boolean',
+                'image' => 'nullable|image|max:2048',
+            ]);
 
-        if ($request->hasFile('image')) {
-            if ($car->image) {
-                Storage::disk('public')->delete($car->image);
+            if ($request->hasFile('image')) {
+                if ($car->image) {
+                    Storage::disk('public')->delete($car->image);
+                }
+                $validated['image'] = $this->handleImageUpload($request);
             }
 
-            $validated['image'] = $request->file('image')->store('images/cars', 'public');
+            $car->update($validated);
+            Log::info("Car {$car->car_id} updated by User: " . auth()->user()->name);
+
+            return response()->json(['status' => 'success', 'message' => 'Car Updated Successfully', 'data' => $car], 200);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json(['status' => 'error', 'message' => 'Car not found'], 404);
+        } catch (\Exception $e) {
+            Log::error("Car update failed: " . $e->getMessage());
+            return response()->json(['status' => 'error', 'message' => 'Failed to update car'], 500);
         }
-
-        $car->update($validated);
-
-        return response()->json(['status' => 'success', 'data' => $car], 200);
     }
 
     public function destroy($id)
     {
-        $car = Car::findOrFail($id);
-        $this->authorize('delete', $car);
+        try {
+            $car = Car::findOrFail($id);
+            $this->authorize('delete', $car);
 
-        if ($car->image) {
-            Storage::disk('public')->delete($car->image);
+            if ($car->image) {
+                Storage::disk('public')->delete($car->image);
+            }
+
+            $car->delete();
+            Log::info("Car {$car->car_id} deleted by User: " . auth()->user()->name);
+
+            return response()->json(['status' => 'success', 'message' => 'Car Deleted Successfully'], 200);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json(['status' => 'error', 'message' => 'Car not found'], 404);
+        } catch (\Exception $e) {
+            return response()->json(['status' => 'error', 'message' => 'Failed to delete car'], 500);
         }
-
-        $car->delete();
-
-        return response()->json(['status' => 'success', 'message' => 'Car deleted'], 200);
     }
 
     public function toggleAvailability($id)
     {
-        $car = Car::findOrFail($id);
-        $this->authorize('update', $car);
+        try {
+            $car = Car::findOrFail($id);
+            $this->authorize('update', $car);
 
-        $car->availability = !$car->availability;
-        $car->save();
+            $car->availability = !$car->availability;
+            $car->save();
+            Log::info("Car {$car->car_id} availability toggled by User: " . auth()->user()->name);
 
-        return response()->json(['status' => 'success', 'message' => 'Car availability toggled', 'data' => $car], 200);
+            return response()->json(['status' => 'success', 'message' => 'Car Availability Toggled Successfully', 'data' => $car], 200);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json(['status' => 'error', 'message' => 'Car not found'], 404);
+        } catch (\Exception $e) {
+            return response()->json(['status' => 'error', 'message' => 'Failed to toggle availability'], 500);
+        }
     }
 
     public function available()
@@ -144,5 +171,16 @@ class CarController extends Controller
         $cars = Car::where('availability', true)->paginate(10);
 
         return response()->json(['status' => 'success', 'data' => $cars], 200);
+    }
+
+    private function handleImageUpload(Request $request, Car $car = null)
+    {
+        if ($request->hasFile('image')) {
+            if ($car && $car->image) {
+                Storage::disk('public')->delete($car->image);
+            }
+            return $request->file('image')->store('images/cars', 'public');
+        }
+        return $car ? $car->image : null;
     }
 }
